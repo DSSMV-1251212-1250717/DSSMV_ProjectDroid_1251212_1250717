@@ -1,4 +1,4 @@
-package pt.isep.dssmv.mapaisep;
+package pt.isep.dssmv.mapaisep.controllers;
 
 import android.os.Bundle;
 
@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import pt.isep.dssmv.mapaisep.R;
 
 public class MainActivity extends AppCompatActivity {
 
