@@ -5,12 +5,14 @@ import android.os.Bundle;                    // Stores key-value data, such as a
 import androidx.appcompat.app.AppCompatActivity; // Base class providing Android Activity functionality.
 import pt.isep.dssmv.mapaisep.R;             // Provides IDs for application resources, such as XML layouts.
 
+import android.content.Intent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.parse.ParseException;
 
 public class LoginActivity extends AppCompatActivity {
@@ -103,8 +105,10 @@ public class LoginActivity extends AppCompatActivity {
             inputPassword.setEnabled(false);
             btnLogin.setText(R.string.login_loading);
 
+
             // This callback runs on the UI thread when the login request finishes.
             authService.login(studentNumber, password, (user, error) -> {
+
                 // Ignore UI updates if this Activity has already been closed.
                 if (isFinishing() || isDestroyed()) {
                     return;
@@ -119,20 +123,55 @@ public class LoginActivity extends AppCompatActivity {
                 // Success requires an authenticated user and no error.
                 if (error == null && user != null) {
                     inputPassword.setText("");
-                    Toast.makeText(LoginActivity.this,
-                            R.string.login_success, Toast.LENGTH_LONG).show();
-                    // Open the main menu here when its Activity is available.
+
+                    // Toast displays a temporary message on the screen.
+                    // LoginActivity.this provides the current Activity's context.
+                    // R.string.login_success identifies the message stored in strings.xml.
+                    // Toast.LENGTH_LONG specifies how long the message is displayed.
+                    // show() tells Android to display the message.
+                    Toast.makeText(
+                            LoginActivity.this,
+                            R.string.login_success,
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                // Intent is an object used to tell Android what action we want to perform.
+                // Here, we specify that we want to open MenuPrincipal from LoginActivity.
+                // Creating the Intent does not open the new screen yet.
+                    Intent intent = new Intent(
+                            LoginActivity.this,
+                            MenuPrincipal.class
+                    );
+
+// Requests Android to start the Activity specified in the Intent.
+// Android starts MenuPrincipal and calls its lifecycle methods,
+// including onCreate() when the Activity is created.
+                    startActivity(intent);
+
+// Requests Android to close LoginActivity,
+// preventing the Back button from returning to the login screen.
+                    finish();
+
+// Stops executing the current callback function.
                     return;
                 }
 
                 // Show a useful message without exposing server error details.
-                if (error != null && error.getCode() == ParseException.OBJECT_NOT_FOUND) {
+                if (error != null &&
+                        error.getCode() == ParseException.OBJECT_NOT_FOUND) {
+
                     errorLogin.setText(R.string.login_error_credentials);
-                } else if (error != null && error.getCode() == ParseException.CONNECTION_FAILED) {
+
+                } else if (error != null &&
+                        error.getCode() == ParseException.CONNECTION_FAILED) {
+
                     errorLogin.setText(R.string.login_error_connection);
+
                 } else {
+
                     errorLogin.setText(R.string.login_error_server);
                 }
+
                 errorLogin.setVisibility(View.VISIBLE);
             });
         });
