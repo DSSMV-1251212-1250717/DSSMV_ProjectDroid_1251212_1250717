@@ -38,8 +38,9 @@
             android:layout_height="match_parent"
             android:visibility="gone">
 
-            <WebView
-                android:id="@+id/mapaWebView"
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/mapaGoogle"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 

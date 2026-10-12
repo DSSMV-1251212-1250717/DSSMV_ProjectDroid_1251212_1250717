@@ -1,5 +1,10 @@
 plugins {
     id("com.android.application")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+}
+
+secrets {
+    defaultPropertiesFileName = "secrets.defaults.properties"
 }
 
 android {
@@ -35,6 +40,8 @@ android {
 dependencies {
     // Adds the Parse SDK so the app can communicate with Back4App.
     implementation("com.github.parse-community.Parse-SDK-Android:parse:4.4.0")
+    // Native Google Maps for Android.
+    implementation("com.google.android.gms:play-services-maps:20.0.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("com.google.android.material:material:1.14.0")
     implementation("androidx.activity:activity:1.13.0")

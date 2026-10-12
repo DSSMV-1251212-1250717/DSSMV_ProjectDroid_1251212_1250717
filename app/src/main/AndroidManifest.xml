@@ -18,6 +18,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MapaISEP">
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+
         <!-- First screen displayed when the application starts. -->
         <activity
             android:name=".controllers.LoginActivity"
