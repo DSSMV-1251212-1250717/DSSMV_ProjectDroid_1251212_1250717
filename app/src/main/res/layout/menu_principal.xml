@@ -38,13 +38,10 @@
             android:layout_height="match_parent"
             android:visibility="gone">
 
-            <TextView
+            <WebView
+                android:id="@+id/mapaWebView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="O mapa aparecerá aqui"
-                android:textSize="18sp"
-                android:textColor="#202124" />
+                android:layout_height="match_parent" />
 
         </FrameLayout>
 
@@ -66,7 +63,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Início"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:backgroundTint="#C62828"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/btnMapa"
@@ -75,7 +74,9 @@
             android:layout_weight="1"
             android:layout_marginStart="12dp"
             android:text="Mapa"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:backgroundTint="#C62828"
+            android:textColor="#FFFFFF" />
 
     </LinearLayout>
 
