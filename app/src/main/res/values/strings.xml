@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">MapaISEP</string>
+    <!-- Strings can be reused or translated without modifying the layouts. -->
+
+    <string name="login_title">Login Mapa ISEP</string>
+    <string name="login_username">Utilizador</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Entrar</string>
+
+    <!-- Login validation messages -->
+    <string name="login_error_student">O número de estudante deve ter exatamente 7 dígitos.</string>
+    <string name="login_error_empty_password">Introduz a password.</string>
+    <string name="login_error_password_length">A password não pode exceder 10 caracteres.</string>
+
+    <!-- Authentication request status and results -->
+    <string name="login_loading">A entrar…</string>
+    <string name="login_success">Autenticação efetuada com sucesso.</string>
+    <string name="login_error_credentials">Utilizador ou password incorretos.</string>
+    <string name="login_error_connection">Não foi possível contactar o servidor. Verifica a ligação à Internet e tenta novamente.</string>
+    <string name="login_error_server">Não foi possível iniciar sessão. Tenta novamente mais tarde.</string>
 </resources>

@@ -3,6 +3,7 @@
           xmlns:tools="http://schemas.android.com/tools">
 
     <application
+            android:name=".controllers.App"
             android:allowBackup="true"
             android:dataExtractionRules="@xml/data_extraction_rules"
             android:fullBackupContent="@xml/backup_rules"
@@ -12,7 +13,7 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.MapaISEP">
         <activity
-                android:name=".controllers.MainActivity"
+                android:name=".controllers.LoginActivity"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -21,5 +22,6 @@
             </intent-filter>
         </activity>
     </application>
-
+    <!-- Allows the application to communicate with external servers -->
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

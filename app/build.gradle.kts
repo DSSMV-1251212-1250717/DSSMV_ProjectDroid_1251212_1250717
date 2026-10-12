@@ -33,6 +33,8 @@ android {
 }
 
 dependencies {
+    // Adds the Parse SDK so the app can communicate with Back4App.
+    implementation("com.github.parse-community.Parse-SDK-Android:parse:4.4.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("com.google.android.material:material:1.14.0")
     implementation("androidx.activity:activity:1.13.0")

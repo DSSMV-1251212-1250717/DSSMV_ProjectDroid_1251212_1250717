@@ -1,1 +1,19 @@
+# Local Android SDK paths
 local.properties
+
+# Gradle caches and generated build output
+.gradle/
+build/
+
+# Local IDE settings
+.idea/
+*.iml
+
+# Generated native build files and captures
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
