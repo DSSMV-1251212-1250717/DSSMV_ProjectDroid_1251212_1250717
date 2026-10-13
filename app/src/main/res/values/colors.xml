@@ -2,4 +2,15 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="campus_background">#F4F6F3</color>
+    <color name="campus_surface">#FFFFFF</color>
+    <color name="campus_text">#182E2A</color>
+    <color name="campus_muted">#61736E</color>
+    <color name="campus_primary">#176855</color>
+    <color name="campus_soft">#E6F0EA</color>
+    <color name="campus_border">#D6E1DB</color>
+    <color name="campus_hero">#143C33</color>
+    <color name="campus_accent">#CEF19E</color>
+    <color name="campus_error">#B3261E</color>
+    <color name="campus_error_surface">#FCEAE7</color>
 </resources>

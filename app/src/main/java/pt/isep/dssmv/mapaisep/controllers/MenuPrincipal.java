@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +25,10 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 
+import com.parse.ParseObject;
+
 import pt.isep.dssmv.mapaisep.R;
+import pt.isep.dssmv.mapaisep.services.HorarioService;
 
 public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallback {
     private static final LatLng ISEP = new LatLng(41.178194, -8.607083);
@@ -56,6 +60,59 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_principal);
+
+        // Finds the text area that displays the loading state, lessons or an error.
+        TextView textoAulas = findViewById(R.id.textoAulas);
+
+        HorarioService horarioService = new HorarioService();
+
+        HorarioService.HorarioCallback callback = new HorarioService.HorarioCallback() {
+
+            @Override
+            public void onResult(List<ParseObject> aulas, String erro) {
+
+                // Do not update a screen that has already been closed.
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+
+                // Check if the request failed.
+                if (erro != null) {
+                    String mensagemErro = getString(R.string.horario_error, erro);
+                    textoAulas.setText(mensagemErro);
+                    return;
+                }
+
+                // A successful request may return no lessons for today.
+                if (aulas.isEmpty()) {
+                    textoAulas.setText(R.string.horario_empty);
+                    return;
+                }
+
+                // Build one text containing all lessons, separated by a blank line.
+                StringBuilder horario = new StringBuilder();
+                for (int i = 0; i < aulas.size(); i++) {
+                    ParseObject aula = aulas.get(i);
+
+                    if (horario.length() > 0) {
+                        horario.append("\n\n");
+                    }
+
+                    String nome = aula.getString("nome");
+                    String horaInicio = aula.getString("horaInicio");
+                    String horaFim = aula.getString("horaFim");
+                    String textoAula = getString(R.string.horario_lesson, nome, horaInicio, horaFim);
+
+                    horario.append(textoAula);
+                }
+
+                // Display the result in the layout instead of Logcat.
+                String textoHorario = horario.toString();
+                textoAulas.setText(textoHorario);
+            }
+        };
+
+        horarioService.obterAulasHoje(callback);
 
         permissaoLocalizacao = registerForActivityResult(
                 new ActivityResultContracts.RequestMultiplePermissions(), resultados -> {

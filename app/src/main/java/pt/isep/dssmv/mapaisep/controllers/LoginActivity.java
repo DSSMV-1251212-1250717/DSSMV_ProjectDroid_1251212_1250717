@@ -4,7 +4,7 @@ package pt.isep.dssmv.mapaisep.controllers;
 import android.os.Bundle;                    // Stores key-value data, such as a saved Activity state.
 import androidx.appcompat.app.AppCompatActivity; // Base class providing Android Activity functionality.
 import pt.isep.dssmv.mapaisep.R;             // Provides IDs for application resources, such as XML layouts.
-
+import pt.isep.dssmv.mapaisep.services.AuthService;
 import android.content.Intent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -42,9 +42,8 @@ public class LoginActivity extends AppCompatActivity {
 
 
         // setOnClickListener() registers a function to execute when the button is clicked.
-        // v -> { ... } is a lambda expression: an unnamed function.
-        // v receives a reference to the View that was clicked.
-        btnLogin.setOnClickListener(v -> {
+        // The lambda contains the instructions to execute when the button is clicked.
+        btnLogin.setOnClickListener(clickedView -> {
             // Instructions executed when the button is clicked.
 
 
@@ -129,30 +128,31 @@ public class LoginActivity extends AppCompatActivity {
                     // R.string.login_success identifies the message stored in strings.xml.
                     // Toast.LENGTH_LONG specifies how long the message is displayed.
                     // show() tells Android to display the message.
-                    Toast.makeText(
+                    Toast successMessage = Toast.makeText(
                             LoginActivity.this,
                             R.string.login_success,
                             Toast.LENGTH_LONG
-                    ).show();
+                    );
+                    successMessage.show();
 
-                // Intent is an object used to tell Android what action we want to perform.
-                // Here, we specify that we want to open MenuPrincipal from LoginActivity.
-                // Creating the Intent does not open the new screen yet.
+                    // Intent is an object used to tell Android what action we want to perform.
+                    // Here, we specify that we want to open MenuPrincipal from LoginActivity.
+                    // Creating the Intent does not open the new screen yet.
                     Intent intent = new Intent(
                             LoginActivity.this,
                             MenuPrincipal.class
                     );
 
-// Requests Android to start the Activity specified in the Intent.
-// Android starts MenuPrincipal and calls its lifecycle methods,
-// including onCreate() when the Activity is created.
+                    // Requests Android to start the Activity specified in the Intent.
+                    // Android starts MenuPrincipal and calls its lifecycle methods,
+                    // including onCreate() when the Activity is created.
                     startActivity(intent);
 
-// Requests Android to close LoginActivity,
-// preventing the Back button from returning to the login screen.
+                    // Requests Android to close LoginActivity,
+                    // preventing the Back button from returning to the login screen.
                     finish();
 
-// Stops executing the current callback function.
+                    // Stops executing the current callback function.
                     return;
                 }
 

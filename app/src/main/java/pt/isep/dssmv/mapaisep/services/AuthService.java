@@ -1,4 +1,4 @@
-package pt.isep.dssmv.mapaisep.controllers;
+package pt.isep.dssmv.mapaisep.services;
 
 import com.parse.LogInCallback;
 import com.parse.ParseUser;

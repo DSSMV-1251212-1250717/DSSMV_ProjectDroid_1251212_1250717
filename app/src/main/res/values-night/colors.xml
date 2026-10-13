@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="campus_background">#101C19</color>
+    <color name="campus_surface">#1C2C27</color>
+    <color name="campus_text">#EDF5EF</color>
+    <color name="campus_muted">#ACBFB5</color>
+    <color name="campus_primary">#A7DDBF</color>
+    <color name="campus_soft">#293E34</color>
+    <color name="campus_border">#41564B</color>
+    <color name="campus_error">#FFB4AB</color>
+    <color name="campus_error_surface">#462B29</color>
+</resources>

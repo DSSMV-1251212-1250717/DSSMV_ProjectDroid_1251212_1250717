@@ -2,8 +2,8 @@
     <string name="app_name">MapaISEP</string>
     <!-- Strings can be reused or translated without modifying the layouts. -->
 
-    <string name="login_title">Login Mapa ISEP</string>
-    <string name="login_username">Utilizador</string>
+    <string name="login_title">Bem-vindo de volta.</string>
+    <string name="login_username">Número de estudante</string>
     <string name="login_password">Password</string>
     <string name="login_button">Entrar</string>
 
@@ -18,4 +18,29 @@
     <string name="login_error_credentials">Utilizador ou password incorretos.</string>
     <string name="login_error_connection">Não foi possível contactar o servidor. Verifica a ligação à Internet e tenta novamente.</string>
     <string name="login_error_server">Não foi possível iniciar sessão. Tenta novamente mais tarde.</string>
+
+    <!-- Interface copy; lesson data is supplied separately by the service. -->
+    <string name="campus_brand">MAPA ISEP</string>
+    <string name="campus_tagline">O teu campus, mais perto.</string>
+    <string name="campus_login_intro">Entra com a tua conta de estudante.</string>
+    <string name="campus_student_hint">Número de 7 dígitos</string>
+    <string name="campus_password_hint">A tua password</string>
+    <string name="campus_footer">Instituto Superior de Engenharia do Porto</string>
+    <string name="campus_home_eyebrow">O TEU ESPAÇO</string>
+    <string name="campus_home_title">O teu dia no ISEP.</string>
+    <string name="campus_home_intro">Aulas, salas e caminhos. Tudo começa aqui.</string>
+    <string name="campus_explore_label">EXPLORA O CAMPUS</string>
+    <string name="campus_explore_title">Encontra o teu\npróximo destino.</string>
+    <string name="campus_explore_body">Um espaço para te orientares no ISEP.</string>
+    <string name="campus_today">A tua agenda</string>
+    <string name="campus_schedule_title">As tuas aulas</string>
+    <string name="horario_loading">A carregar as aulas de hoje…</string>
+    <string name="horario_empty">Não tens aulas marcadas para hoje.</string>
+    <string name="horario_error">Não foi possível carregar as aulas: %1$s</string>
+    <string name="horario_lesson">%1$s\n%2$s — %3$s</string>
+    <string name="campus_coming_soon">Em preparação</string>
+    <string name="campus_home">Início</string>
+    <string name="campus_map">Mapa</string>
+    <string name="campus_map_title">O campus na tua mão.</string>
+    <string name="campus_map_body">Estamos a preparar este espaço para explorares os edifícios e encontrares a tua sala.</string>
 </resources>

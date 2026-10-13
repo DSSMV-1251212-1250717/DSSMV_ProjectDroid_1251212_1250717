@@ -1,84 +1,49 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F7F8FA">
-
-    <!-- Main content area. -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <!-- Main menu, visible when the Activity starts. -->
-        <LinearLayout
-            android:id="@+id/paginaInicio"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Menu principal"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="#202124" />
-
-        </LinearLayout>
-
-        <!-- Map section, initially hidden. -->
+<?xml version='1.0' encoding='utf-8'?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:fitsSystemWindows="true" android:background="@color/campus_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="24dp" android:paddingTop="20dp" android:paddingBottom="16dp">
+        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_campus_pin" android:importantForAccessibility="no" android:scaleType="fitCenter" android:background="@drawable/bg_campus_soft" android:padding="9dp" />
+        <TextView style="@style/CampusLabel" android:text="@string/campus_brand" android:layout_width="wrap_content" android:layout_marginStart="12dp" android:letterSpacing="0.14" />
+    </LinearLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <ScrollView android:id="@+id/paginaInicio" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingTop="16dp" android:paddingBottom="24dp">
+                <TextView style="@style/CampusLabel" android:text="@string/campus_home_eyebrow" android:textColor="@color/campus_primary" android:textSize="11sp" android:letterSpacing="0.16" />
+                <TextView style="@style/CampusLabel" android:text="@string/campus_home_title" android:layout_marginTop="10dp" android:textSize="32sp" />
+                <TextView style="@style/CampusBody" android:text="@string/campus_home_intro" android:layout_marginTop="8dp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="28dp" android:background="@drawable/bg_campus_hero" android:padding="24dp">
+                    <TextView style="@style/CampusLabel" android:text="@string/campus_explore_label" android:textColor="@color/campus_accent" android:textSize="11sp" android:letterSpacing="0.12" />
+                    <TextView style="@style/CampusLabel" android:text="@string/campus_explore_title" android:layout_marginTop="12dp" android:textSize="27sp" android:textColor="@color/white" />
+                    <ImageView android:layout_width="match_parent" android:layout_height="130dp" android:src="@drawable/illustration_campus" android:importantForAccessibility="no" android:scaleType="fitCenter" android:layout_marginTop="16dp" />
+                    <TextView style="@style/CampusBody" android:text="@string/campus_explore_body" android:layout_marginTop="12dp" android:textColor="#D0E3D8" android:textSize="13sp" />
+                </LinearLayout>
+                <TextView style="@style/CampusLabel" android:text="@string/campus_today" android:layout_marginTop="28dp" android:textSize="20sp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp" android:padding="20dp" android:background="@drawable/bg_campus_card">
+                    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_campus_clock" android:importantForAccessibility="no" android:scaleType="fitCenter" android:padding="10dp" android:background="@drawable/bg_campus_soft" />
+                    <TextView style="@style/CampusLabel" android:text="@string/campus_schedule_title" android:layout_marginTop="14dp" android:textSize="18sp" />
+                    <TextView
+                        android:id="@+id/textoAulas"
+                        style="@style/CampusBody"
+                        android:text="@string/horario_loading"
+                        android:textColor="@color/campus_text"
+                        android:layout_marginTop="6dp"
+                        android:accessibilityLiveRegion="polite" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
         <FrameLayout
             android:id="@+id/paginaMapa"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone">
-
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/mapaGoogle"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-
         </FrameLayout>
-
     </FrameLayout>
-
-    <!-- Bottom navigation bar. -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="#FFFFFF"
-        android:elevation="8dp"
-        android:paddingHorizontal="12dp">
-
-        <Button
-            android:id="@+id/btnInicio"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Início"
-            android:textAllCaps="false"
-            android:backgroundTint="#C62828"
-            android:textColor="#FFFFFF" />
-
-        <Button
-            android:id="@+id/btnMapa"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:text="Mapa"
-            android:textAllCaps="false"
-            android:backgroundTint="#C62828"
-            android:textColor="#FFFFFF" />
-
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@color/campus_surface" android:paddingHorizontal="24dp" android:paddingVertical="14dp" android:gravity="center_vertical" android:elevation="8dp">
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnInicio" style="@style/CampusNavigation" android:text="@string/campus_home" app:icon="@drawable/ic_campus_home" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnMapa" style="@style/CampusNavigation" android:text="@string/campus_map" app:icon="@drawable/ic_campus_pin" android:layout_marginStart="12dp" />
     </LinearLayout>
-
 </LinearLayout>
