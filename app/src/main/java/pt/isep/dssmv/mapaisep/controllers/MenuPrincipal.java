@@ -1,12 +1,15 @@
 package pt.isep.dssmv.mapaisep.controllers;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.TextView;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +29,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 
 import com.parse.ParseObject;
+import com.parse.ParseUser;
 
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.services.HorarioService;
@@ -140,6 +144,29 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             paginaMapa.setVisibility(View.VISIBLE);
             pedirPermissaoOuAtivarLocalizacao();
         });
+
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
+        btnMenu.setOnClickListener(anchor -> {
+            PopupMenu menuConta = new PopupMenu(this, anchor);
+            menuConta.getMenuInflater().inflate(R.menu.menu_account, menuConta.getMenu());
+            menuConta.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_logout) {
+                    terminarSessao();
+                    return true;
+                }
+                return false;
+            });
+            menuConta.show();
+        });
+    }
+
+    private void terminarSessao() {
+        ParseUser.logOut();
+
+        Intent irParaLogin = new Intent(this, LoginActivity.class);
+        irParaLogin.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(irParaLogin);
+        finish();
     }
 
     @Override

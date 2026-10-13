@@ -2,13 +2,13 @@
 <!-- Decorative campus illustration, not a geographic map. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="320dp" android:height="160dp" android:viewportWidth="320" android:viewportHeight="160">
-    <path android:fillColor="#214E41" android:pathData="M0,35L95,0L210,45L320,8L320,137L210,160L95,115L0,150Z" />
-    <path android:fillColor="#00000000" android:strokeColor="#416959" android:strokeWidth="2"
+    <path android:fillColor="#777777" android:pathData="M0,35L95,0L210,45L320,8L320,137L210,160L95,115L0,150Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#AFAFAF" android:strokeWidth="2"
         android:pathData="M95,0L95,115M210,45L210,160M0,88L95,52L210,100L320,62" />
-    <path android:fillColor="#658575" android:pathData="M24,51L66,35L66,61L24,77ZM114,32L151,47L151,72L114,57ZM230,71L282,52L282,80L230,99ZM116,101L155,117L155,141L116,126Z" />
-    <path android:fillColor="#00000000" android:strokeColor="#CEF19E" android:strokeWidth="4"
+    <path android:fillColor="#BDBDBD" android:pathData="M24,51L66,35L66,61L24,77ZM114,32L151,47L151,72L114,57ZM230,71L282,52L282,80L230,99ZM116,101L155,117L155,141L116,126Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#F44336" android:strokeWidth="4"
         android:strokeLineJoin="round" android:strokeLineCap="round"
         android:pathData="M46,113L94,94L177,127L177,78" />
-    <path android:fillColor="#CEF19E" android:pathData="M52,113A6,6 0,1 1,40 113A6,6 0,1 1,52 113M177,89C177,89 159,70 159,59A18,18 0,0 1,195 59C195,70 177,89 177,89Z" />
-    <path android:fillColor="#143C33" android:pathData="M184,59A7,7 0,1 1,170 59A7,7 0,1 1,184 59" />
+    <path android:fillColor="#F44336" android:pathData="M52,113A6,6 0,1 1,40 113A6,6 0,1 1,52 113M177,89C177,89 159,70 159,59A18,18 0,0 1,195 59C195,70 177,89 177,89Z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M184,59A7,7 0,1 1,170 59A7,7 0,1 1,184 59" />
 </vector>

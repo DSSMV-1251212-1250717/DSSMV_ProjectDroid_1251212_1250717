@@ -1,3 +1,6 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
@@ -49,4 +52,25 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+}
+
+// Permite executar a aplicação através de uma configuração Gradle no IntelliJ,
+// mesmo quando o IDE não oferece a configuração Android App para este módulo.
+val sdkProperties = Properties().apply {
+    rootProject.file("local.properties").inputStream().use { load(it) }
+}
+val androidSdkPath = sdkProperties.getProperty("sdk.dir")
+    ?: error("sdk.dir não está definido em local.properties")
+val adbExecutable = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+    "adb.exe"
+} else {
+    "adb"
+}
+
+tasks.register<Exec>("runDebugOnEmulator") {
+    group = "application"
+    description = "Instala e abre MapaISEP no emulador Android ligado."
+    dependsOn("installDebug")
+    executable = File(androidSdkPath, "platform-tools/$adbExecutable").absolutePath
+    args("shell", "am", "start", "-n", "pt.isep.dssmv.mapaisep/.controllers.LoginActivity")
 }

@@ -20,8 +20,10 @@
     <string name="login_error_server">Não foi possível iniciar sessão. Tenta novamente mais tarde.</string>
 
     <!-- Interface copy; lesson data is supplied separately by the service. -->
-    <string name="campus_brand">MAPA ISEP</string>
+    <string name="campus_brand">Mapa ISEP</string>
     <string name="campus_tagline">O teu campus, mais perto.</string>
+    <string name="isep_logo_description">Logótipo do ISEP</string>
+    <string name="campus_map_image_description">Planta ilustrada dos edifícios do campus ISEP</string>
     <string name="campus_login_intro">Entra com a tua conta de estudante.</string>
     <string name="campus_student_hint">Número de 7 dígitos</string>
     <string name="campus_password_hint">A tua password</string>
@@ -43,4 +45,6 @@
     <string name="campus_map">Mapa</string>
     <string name="campus_map_title">O campus na tua mão.</string>
     <string name="campus_map_body">Estamos a preparar este espaço para explorares os edifícios e encontrares a tua sala.</string>
+    <string name="open_account_menu">Abrir menu da conta</string>
+    <string name="logout">Terminar sessão</string>
 </resources>
