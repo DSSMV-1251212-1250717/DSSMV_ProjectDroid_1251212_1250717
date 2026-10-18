@@ -1,0 +1,6 @@
+<resources>
+    <!-- Este atributo só existe a partir do Android 8.1 (API 27). -->
+    <style name="Theme.MapaISEP" parent="Base.Theme.MapaISEP">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

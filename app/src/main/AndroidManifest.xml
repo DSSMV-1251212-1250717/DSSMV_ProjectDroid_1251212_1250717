@@ -4,11 +4,12 @@
 
     <!-- Allows the application to communicate with external servers. -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Permissions required to access the device's location. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
-        android:name=".controllers.App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -18,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MapaISEP">
 
+        <!-- Google Maps API key, configured separately from Firebase. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />

@@ -1,11 +1,8 @@
-package pt.isep.dssmv.mapaisep.controllers;
-// Package: organizes classes under a unique name to avoid naming conflicts.
 
-import android.os.Bundle;                    // Stores key-value data, such as a saved Activity state.
-import androidx.appcompat.app.AppCompatActivity; // Base class providing Android Activity functionality.
-import pt.isep.dssmv.mapaisep.R;             // Provides IDs for application resources, such as XML layouts.
-import pt.isep.dssmv.mapaisep.services.AuthService;
+package pt.isep.dssmv.mapaisep.controllers;
+
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -13,167 +10,191 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.ParseException;
+import androidx.appcompat.app.AppCompatActivity;
+
+import pt.isep.dssmv.mapaisep.R;
+import pt.isep.dssmv.mapaisep.services.AuthService;
 
 public class LoginActivity extends AppCompatActivity {
-    // Inherits methods for managing an Android Activity.
 
+    // Called when Android creates this Activity.
     @Override
-    // Replaces the inherited onCreate() implementation with our own.
     protected void onCreate(Bundle savedInstanceState) {
-        // Called by Android when this Activity is created.
-        // savedInstanceState contains previously saved state, or null if none exists.
 
         super.onCreate(savedInstanceState);
-        // Executes the parent class's onCreate() initialization.
 
+        // Load the login screen layout.
         setContentView(R.layout.activity_login);
-        // Loads res/layout/activity_login.xml and displays its interface.
 
-
-        // Get references to the views created from the XML.
+        // Get references to the views defined in the XML layout.
         Button btnLogin = findViewById(R.id.btnLogin);
         EditText inputUser = findViewById(R.id.inputUtilizador);
         EditText inputPassword = findViewById(R.id.inputPassword);
         TextView errorLogin = findViewById(R.id.errorLogin);
 
-        // Creates the object responsible for contacting Back4App.
+        // Create the service responsible for Firebase authentication.
         AuthService authService = new AuthService();
 
-
-        // setOnClickListener() registers a function to execute when the button is clicked.
-        // The lambda contains the instructions to execute when the button is clicked.
+        // Execute this code when the login button is clicked.
         btnLogin.setOnClickListener(clickedView -> {
-            // Instructions executed when the button is clicked.
 
-
-            // Get the View currently receiving keyboard input.
+            // Get the view currently receiving keyboard input.
             View focusedView = getCurrentFocus();
 
             if (focusedView != null) {
+
                 // Get Android's virtual keyboard manager.
                 InputMethodManager keyboard =
-                        (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                        (InputMethodManager) getSystemService(
+                                INPUT_METHOD_SERVICE
+                        );
 
-                // Request the virtual keyboard to close.
-                keyboard.hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
+                if (keyboard != null) {
+
+                    // Request the virtual keyboard to close.
+                    keyboard.hideSoftInputFromWindow(
+                            focusedView.getWindowToken(),
+                            0
+                    );
+                }
 
                 // Remove focus from the input field.
                 focusedView.clearFocus();
             }
 
-
-            // Read the current text from both input fields.
-            String studentNumber = inputUser.getText().toString();
+            // Read the student's credentials.
+            String studentNumber = inputUser.getText().toString().trim();
             String password = inputPassword.getText().toString();
 
-
-            // matches() checks if the entire string follows the given Regex pattern.
-            // [0-9] matches one digit from 0 to 9.
-            // {7} requires exactly 7 occurrences of the previous pattern.
-            // ! negates the result (true becomes false and vice versa).
+            // Validate the student number (exactly 7 digits).
             if (!studentNumber.matches("[0-9]{7}")) {
+
                 errorLogin.setText(R.string.login_error_student);
                 errorLogin.setVisibility(View.VISIBLE);
                 return;
             }
 
-
             // Check if the password is empty.
             if (password.isEmpty()) {
-                errorLogin.setText(R.string.login_error_empty_password);
+
+                errorLogin.setText(
+                        R.string.login_error_empty_password
+                );
+
                 errorLogin.setVisibility(View.VISIBLE);
                 return;
             }
-
 
             // Check if the password exceeds 10 characters.
             if (password.length() > 10) {
-                errorLogin.setText(R.string.login_error_password_length);
+
+                errorLogin.setText(
+                        R.string.login_error_password_length
+                );
+
                 errorLogin.setVisibility(View.VISIBLE);
                 return;
             }
 
-
-            // Hide previous errors if the input format is valid.
+            // Hide previous errors.
             errorLogin.setVisibility(View.GONE);
 
-            // Prevents repeated requests and changes to the submitted credentials.
+            // Disable the form while waiting for Firebase.
             btnLogin.setEnabled(false);
             inputUser.setEnabled(false);
             inputPassword.setEnabled(false);
             btnLogin.setText(R.string.login_loading);
 
+            // Send the credentials to AuthService.
+            // The callback communicates the authentication result.
+            authService.login(
+                    studentNumber,
+                    password,
 
-            // This callback runs on the UI thread when the login request finishes.
-            authService.login(studentNumber, password, (user, error) -> {
+                    new AuthService.LoginCallback() {
 
-                // Ignore UI updates if this Activity has already been closed.
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
+                        // Implementation executed after successful login.
+                        @Override
+                        public void onSuccess(
+                                String uid,
+                                String idToken,
+                                String refreshToken
+                        ) {
 
-                // Restore the form after receiving the response.
-                btnLogin.setEnabled(true);
-                inputUser.setEnabled(true);
-                inputPassword.setEnabled(true);
-                btnLogin.setText(R.string.login_button);
+                            // Avoid updating an Activity that was closed.
+                            if (isFinishing() || isDestroyed()) {
+                                return;
+                            }
 
-                // Success requires an authenticated user and no error.
-                if (error == null && user != null) {
-                    inputPassword.setText("");
+                            // Remove the password from the input field.
+                            inputPassword.setText("");
 
-                    // Toast displays a temporary message on the screen.
-                    // LoginActivity.this provides the current Activity's context.
-                    // R.string.login_success identifies the message stored in strings.xml.
-                    // Toast.LENGTH_LONG specifies how long the message is displayed.
-                    // show() tells Android to display the message.
-                    Toast successMessage = Toast.makeText(
-                            LoginActivity.this,
-                            R.string.login_success,
-                            Toast.LENGTH_LONG
-                    );
-                    successMessage.show();
+                            // Display a success message.
+                            Toast.makeText(
+                                    LoginActivity.this,
+                                    R.string.login_success,
+                                    Toast.LENGTH_LONG
+                            ).show();
 
-                    // Intent is an object used to tell Android what action we want to perform.
-                    // Here, we specify that we want to open MenuPrincipal from LoginActivity.
-                    // Creating the Intent does not open the new screen yet.
-                    Intent intent = new Intent(
-                            LoginActivity.this,
-                            MenuPrincipal.class
-                    );
+                            // Create an Intent to open MenuPrincipal.
+                            Intent intent = new Intent(
+                                    LoginActivity.this,
+                                    MenuPrincipal.class
+                            );
 
-                    // Requests Android to start the Activity specified in the Intent.
-                    // Android starts MenuPrincipal and calls its lifecycle methods,
-                    // including onCreate() when the Activity is created.
-                    startActivity(intent);
+                            // Open the main screen.
+                            startActivity(intent);
 
-                    // Requests Android to close LoginActivity,
-                    // preventing the Back button from returning to the login screen.
-                    finish();
+                            // Close the login screen.
+                            finish();
+                        }
 
-                    // Stops executing the current callback function.
-                    return;
-                }
+                        // Implementation executed when login fails.
+                        @Override
+                        public void onError(String errorCode) {
 
-                // Show a useful message without exposing server error details.
-                if (error != null &&
-                        error.getCode() == ParseException.OBJECT_NOT_FOUND) {
+                            // Avoid updating an Activity that was closed.
+                            if (isFinishing() || isDestroyed()) {
+                                return;
+                            }
 
-                    errorLogin.setText(R.string.login_error_credentials);
+                            // Re-enable the login form.
+                            btnLogin.setEnabled(true);
+                            inputUser.setEnabled(true);
+                            inputPassword.setEnabled(true);
+                            btnLogin.setText(R.string.login_button);
 
-                } else if (error != null &&
-                        error.getCode() == ParseException.CONNECTION_FAILED) {
+                            // Handle invalid credentials.
+                            if (errorCode.equals("INVALID_LOGIN_CREDENTIALS")
+                                    || errorCode.equals("INVALID_PASSWORD")
+                                    || errorCode.equals("EMAIL_NOT_FOUND")) {
 
-                    errorLogin.setText(R.string.login_error_connection);
+                                errorLogin.setText(
+                                        R.string.login_error_credentials
+                                );
 
-                } else {
+                            } else if (
+                                    errorCode.equals("NETWORK_ERROR")
+                            ) {
 
-                    errorLogin.setText(R.string.login_error_server);
-                }
+                                // Handle connection problems.
+                                errorLogin.setText(
+                                        R.string.login_error_connection
+                                );
 
-                errorLogin.setVisibility(View.VISIBLE);
-            });
+                            } else {
+
+                                // Handle other Firebase errors.
+                                errorLogin.setText(
+                                        R.string.login_error_server
+                                );
+                            }
+
+                            // Display the error message.
+                            errorLogin.setVisibility(View.VISIBLE);
+                        }
+                    }
+            );
         });
     }
 }
