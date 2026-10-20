@@ -15,9 +15,7 @@ public class HttpClient {
 
     // Este método espera pela resposta. O serviço deve chamá-lo numa thread secundária.
     // idToken e corpo podem ser null quando o pedido não precisa desses dados.
-    public HttpResponse enviarPedido(
-            String endereco, String metodo, String idToken, String corpo
-    ) throws IOException {
+    public HttpResponse enviarPedido(String endereco, String metodo, String idToken, String corpo) throws IOException {
         HttpURLConnection connection = null;
 
         try {
@@ -69,8 +67,7 @@ public class HttpClient {
         }
 
         StringBuilder resposta = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
                 resposta.append(linha);

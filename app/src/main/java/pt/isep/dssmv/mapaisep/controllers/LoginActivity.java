@@ -118,13 +118,29 @@ public class LoginActivity extends AppCompatActivity {
             inputPassword.setEnabled(false);
             btnLogin.setText(R.string.login_loading);
 
-            // Send the credentials to AuthService.
-            // The callback communicates the authentication result.
+            /*
+             * LoginActivity cria o objeto com onSuccess e onError
+             *                         ↓
+             * Passa esse objeto ao AuthService
+             *                         ↓
+             * AuthService faz o pedido numa thread secundária
+             *                         ↓
+             * Firebase responde
+             *                         ↓
+             * AuthService agenda a chamada através do Handler
+             *                         ↓
+             * Main thread executa onSuccess ou onError desse objeto
+             *                         ↓
+             * O código definido na LoginActivity abre o menu ou mostra o erro
+             */
             authService.login(
                     studentNumber,
                     password,
 
                     new AuthService.LoginCallback() {
+                        //o authservice precisa de saber oque fazer quando receber a autenticacao
+                        //authservice disponibiliza uma interface para preenchermos
+                        //para poder saber oque fazer
 
                         // Implementation executed after successful login.
                         @Override

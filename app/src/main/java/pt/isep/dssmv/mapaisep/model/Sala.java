@@ -1,10 +1,8 @@
-
 package pt.isep.dssmv.mapaisep.model;
 
 import pt.isep.dssmv.mapaisep.exceptions.InvalidDataException;
 
 public class Sala {
-
     // Room identifier, for example "B201".
     private String codigo;
 
@@ -46,13 +44,7 @@ public class Sala {
     }
 
     // Creates a room with all available information.
-    public Sala(
-            String codigo,
-            String edificio,
-            int piso,
-            double latitude,
-            double longitude
-    ) {
+    public Sala(String codigo, String edificio, int piso, double latitude, double longitude) {
         this(codigo, edificio, piso);
         setLocalizacao(latitude, longitude);
     }
@@ -106,12 +98,7 @@ public class Sala {
     // Latitude and longitude identify geographic positions.
     // Building and floor identify the room within the campus.
     public void setLocalizacao(double latitude, double longitude) {
-
-        if (!Double.isFinite(latitude) ||
-                !Double.isFinite(longitude) ||
-                latitude < -90 || latitude > 90 ||
-                longitude < -180 || longitude > 180) {
-
+        if (!Double.isFinite(latitude) || !Double.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
             throw new InvalidDataException("Invalid room coordinates");
         }
 
@@ -126,6 +113,7 @@ public class Sala {
     }
 
     @Override
+
     public String toString() {
         return codigo;
     }

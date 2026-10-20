@@ -45,9 +45,7 @@ public class AuthService {
 
                 // POST envia as credenciais no corpo JSON através de HTTPS.
                 // Ainda não há ID token: é este pedido que o vai obter.
-                HttpResponse response = httpClient.enviarPedido(
-                        FirebaseConfig.AUTH_URL, "POST", null, request.toString()
-                );
+                HttpResponse response = httpClient.enviarPedido(FirebaseConfig.AUTH_URL, "POST", null, request.toString());
 
                 if (!response.isSuccessful()) {
                     String errorCode = lerCodigoErro(response);

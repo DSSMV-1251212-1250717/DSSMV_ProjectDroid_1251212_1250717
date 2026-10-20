@@ -22,25 +22,21 @@ import pt.isep.dssmv.mapaisep.network.HttpClient;
 import pt.isep.dssmv.mapaisep.network.HttpResponse;
 
 public class HorarioService {
-
     private final HttpClient httpClient = new HttpClient();
     private final AulaMapper aulaMapper = new AulaMapper();
 
     // Allows the secondary thread to schedule the callback
     // on Android's main thread.
-    private final Handler mainHandler =
-            new Handler(Looper.getMainLooper());
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     // Defines the method that the caller must implement
     // to receive the timetable or an error.
     public interface HorarioCallback {
-
         void onResult(List<Aula> resultado, String erro);
     }
 
     // Retrieves today's lessons for the authenticated student.
     public void obterAulasHoje(HorarioCallback callback) {
-
         // UID identifies which student's document we need.
         String uid = AuthService.getCurrentUid();
 
@@ -48,10 +44,7 @@ public class HorarioService {
         String idToken = AuthService.getIdToken();
 
         if (uid == null || idToken == null) {
-
-            mainHandler.post(() ->
-                    callback.onResult(null, "NOT_AUTHENTICATED")
-            );
+            mainHandler.post(() -> callback.onResult(null, "NOT_AUTHENTICATED"));
 
             return;
         }
@@ -61,9 +54,7 @@ public class HorarioService {
         // This prevents the main thread from blocking the UI
         // while waiting for Firestore responses.
         new Thread(() -> {
-
             try {
-
                 // STEP 1: Retrieve the student's class.
                 //
                 // The Firestore document ID matches the
@@ -76,8 +67,7 @@ public class HorarioService {
                 // 1 = Monday, ..., 7 = Sunday.
                 Calendar calendar = Calendar.getInstance();
 
-                int diaAndroid =
-                        calendar.get(Calendar.DAY_OF_WEEK);
+                int diaAndroid = calendar.get(Calendar.DAY_OF_WEEK);
 
                 int diaSemana;
                 if (diaAndroid == Calendar.SUNDAY) {
@@ -90,19 +80,13 @@ public class HorarioService {
                 //
                 // Retrieve lessons matching the student's
                 // class and the current weekday.
-                JSONObject request =
-                        construirConsulta(turmaId, diaSemana);
+                JSONObject request = construirConsulta(turmaId, diaSemana);
 
                 // STEP 4: Send the HTTP request to Firestore.
                 //
                 // runQuery uses POST because its filters
                 // are sent in the JSON request body.
-                String respostaJson = enviarPedido(
-                        FirebaseConfig.FIRESTORE_URL + ":runQuery",
-                        "POST",
-                        idToken,
-                        request
-                );
+                String respostaJson = enviarPedido(FirebaseConfig.FIRESTORE_URL + ":runQuery", "POST", idToken, request);
 
                 // STEP 5: Deserialize the received JSON.
                 JSONArray documentos = new JSONArray(respostaJson);
@@ -110,7 +94,6 @@ public class HorarioService {
                 List<Aula> resultado = new ArrayList<>();
 
                 for (int i = 0; i < documentos.length(); i++) {
-
                     JSONObject item = documentos.getJSONObject(i);
 
                     // Firestore can return responses without documents.
@@ -118,11 +101,9 @@ public class HorarioService {
                         continue;
                     }
 
-                    JSONObject documento =
-                            item.getJSONObject("document");
+                    JSONObject documento = item.getJSONObject("document");
 
-                    JSONObject campos =
-                            documento.getJSONObject("fields");
+                    JSONObject campos = documento.getJSONObject("fields");
 
                     // DESERIALIZATION: JSON -> AulaDTO
                     //
@@ -145,12 +126,7 @@ public class HorarioService {
                 }
 
                 // Sort the lessons by their starting time.
-                Collections.sort(
-                        resultado,
-                        (primeira, segunda) ->
-                                primeira.getHoraInicio()
-                                        .compareTo(segunda.getHoraInicio())
-                );
+                Collections.sort(resultado, (primeira, segunda) -> primeira.getHoraInicio().compareTo(segunda.getHoraInicio()));
 
                 // CALLBACK - STEP 3:
                 //
@@ -168,12 +144,8 @@ public class HorarioService {
                 // executing the code implemented in MenuPrincipal.
                 //
                 // The result list is passed as an argument.
-                mainHandler.post(() ->
-                        callback.onResult(resultado, null)
-                );
-
+                mainHandler.post(() -> callback.onResult(resultado, null));
             } catch (IOException e) {
-
                 String mensagem = e.getMessage();
                 if (mensagem == null) {
                     mensagem = "NETWORK_ERROR";
@@ -181,64 +153,36 @@ public class HorarioService {
                 final String erro = mensagem;
 
                 // Return the error on the main thread.
-                mainHandler.post(() ->
-                        callback.onResult(null, erro)
-                );
-
+                mainHandler.post(() -> callback.onResult(null, erro));
             } catch (JSONException | IllegalArgumentException | DateTimeException e) {
-
                 // Handle invalid data or Model conversion errors.
                 final String erro = "INVALID_LESSON_DATA";
 
-                mainHandler.post(() ->
-                        callback.onResult(null, erro)
-                );
+                mainHandler.post(() -> callback.onResult(null, erro));
             }
-
         }).start();
     }
 
     // Retrieves the student's class identifier from Firestore.
-    private String consultarTurma(String uid, String idToken)
-            throws IOException, JSONException {
-
+    private String consultarTurma(String uid, String idToken) throws IOException, JSONException {
         String endereco = FirebaseConfig.FIRESTORE_URL + "/alunos/" + uid;
 
         // First HTTP request: GET the student's document.
-        String resposta = enviarPedido(
-                endereco,
-                "GET",
-                idToken,
-                null
-        );
+        String resposta = enviarPedido(endereco, "GET", idToken, null);
 
         JSONObject documento = new JSONObject(resposta);
 
         JSONObject campos = documento.getJSONObject("fields");
 
         // Read the class identifier, for example "TurmaB".
-        return campos.getJSONObject("turmaId")
-                .getString("stringValue");
+        return campos.getJSONObject("turmaId").getString("stringValue");
     }
 
     // Creates a Firestore query for class and weekday.
-    private JSONObject construirConsulta(
-            String turmaId,
-            int diaSemana
-    ) throws JSONException {
+    private JSONObject construirConsulta(String turmaId, int diaSemana) throws JSONException {
+        JSONObject filtroTurma = criarFiltro("turmaId", new JSONObject().put("stringValue", turmaId));
 
-        JSONObject filtroTurma = criarFiltro(
-                "turmaId",
-                new JSONObject().put("stringValue", turmaId)
-        );
-
-        JSONObject filtroDia = criarFiltro(
-                "diaSemana",
-                new JSONObject().put(
-                        "integerValue",
-                        String.valueOf(diaSemana)
-                )
-        );
+        JSONObject filtroDia = criarFiltro("diaSemana", new JSONObject().put("integerValue", String.valueOf(diaSemana)));
 
         JSONArray filtros = new JSONArray();
         filtros.put(filtroTurma);
@@ -271,11 +215,7 @@ public class HorarioService {
     }
 
     // Creates a Firestore equality filter.
-    private JSONObject criarFiltro(
-            String campo,
-            JSONObject valor
-    ) throws JSONException {
-
+    private JSONObject criarFiltro(String campo, JSONObject valor) throws JSONException {
         JSONObject field = new JSONObject();
         field.put("fieldPath", campo);
 
@@ -291,8 +231,7 @@ public class HorarioService {
     }
 
     // O serviço interpreta o estado HTTP; o HttpClient trata apenas do transporte.
-    private String enviarPedido(String endereco, String metodo, String idToken,
-                                JSONObject corpo) throws IOException {
+    private String enviarPedido(String endereco, String metodo, String idToken, JSONObject corpo) throws IOException {
         String textoJson = null;
         if (corpo != null) {
             textoJson = corpo.toString();

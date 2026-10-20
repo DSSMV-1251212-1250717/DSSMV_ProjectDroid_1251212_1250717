@@ -63,6 +63,7 @@ public class Aula {
     }
 
     @Override
+
     public String toString() {
         return horaInicio + "-" + horaFim + " " + disciplina + " (" + sala.getCodigo() + ")";
     }

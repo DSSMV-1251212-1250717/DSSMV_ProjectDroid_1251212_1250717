@@ -16,12 +16,11 @@ public final class FirebaseConfig {
     public static final String EMAIL_DOMAIN = "@alunos.example.com";
 
     public static final String AUTH_URL =
-            "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
-                    + API_KEY;
+    "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
+    + API_KEY;
 
-    public static final String FIRESTORE_URL =
-            "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID
-                    + "/databases/" + DATABASE_ID + "/documents";
+    public static final String FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID
+            + "/databases/" + DATABASE_ID + "/documents";
 
     private FirebaseConfig() {
     }

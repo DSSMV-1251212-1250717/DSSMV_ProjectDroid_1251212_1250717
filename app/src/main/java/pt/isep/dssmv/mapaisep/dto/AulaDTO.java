@@ -1,8 +1,6 @@
-
 package pt.isep.dssmv.mapaisep.dto;
 
 public class AulaDTO {
-
     // Data received from the Firestore API.
     // DTOs transport data without implementing business logic.
 
