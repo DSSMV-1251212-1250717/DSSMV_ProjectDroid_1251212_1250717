@@ -41,8 +41,6 @@ android {
 }
 
 dependencies {
-    // Adds the Parse SDK so the app can communicate with Back4App.
-    implementation("com.github.parse-community.Parse-SDK-Android:parse:4.4.0")
     // Native Google Maps for Android.
     implementation("com.google.android.gms:play-services-maps:20.0.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
@@ -60,7 +58,9 @@ val sdkProperties = Properties().apply {
     rootProject.file("local.properties").inputStream().use { load(it) }
 }
 val androidSdkPath = sdkProperties.getProperty("sdk.dir")
-    ?: error("sdk.dir não está definido em local.properties")
+if (androidSdkPath == null) {
+    error("sdk.dir não está definido em local.properties")
+}
 val adbExecutable = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
     "adb.exe"
 } else {

@@ -5,6 +5,5 @@
         <item name="colorSecondary">@color/campus_primary</item>
         <item name="android:windowBackground">@color/campus_background</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>

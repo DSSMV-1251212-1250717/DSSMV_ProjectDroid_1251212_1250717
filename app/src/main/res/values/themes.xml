@@ -5,7 +5,6 @@
         <item name="colorSecondary">@color/campus_primary</item>
         <item name="android:windowBackground">@color/campus_background</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
     <style name="Theme.MapaISEP" parent="Base.Theme.MapaISEP"/>

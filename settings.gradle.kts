@@ -16,8 +16,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // JitPack is a service from which Gradle downloads libraries.
-        maven { url = uri("https://jitpack.io") }
     }
 }
 
