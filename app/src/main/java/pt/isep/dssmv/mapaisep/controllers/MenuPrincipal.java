@@ -4,7 +4,11 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.TextView;
@@ -25,6 +29,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 
@@ -59,10 +65,22 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
     private GoogleMap mapa;
     private ActivityResultLauncher<String[]> permissaoLocalizacao;
+    private LocationManager gestorLocalizacao;
+    private LocationListener ouvinteLocalizacao;
+    private Circle pontoLocalizacao;
+    private boolean atualizacoesLocalizacaoAtivas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        gestorLocalizacao = (LocationManager) getSystemService(LOCATION_SERVICE);
+        ouvinteLocalizacao = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location localizacao) {
+                atualizarPontoLocalizacao(localizacao);
+            }
+        };
         setContentView(R.layout.menu_principal);
 
         // Finds the text area that displays the loading state, lessons or an error.
@@ -222,6 +240,83 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         if (mapa != null && temPermissaoLocalizacao()) {
             mapa.setMyLocationEnabled(true);
             mapa.getUiSettings().setMyLocationButtonEnabled(true);
+            iniciarAtualizacoesLocalizacao();
+        }
+    }
+
+    @SuppressWarnings("MissingPermission")
+    private void iniciarAtualizacoesLocalizacao() {
+        if (gestorLocalizacao == null || atualizacoesLocalizacaoAtivas
+                || !temPermissaoLocalizacao()) {
+            return;
+        }
+
+        boolean fornecedorAtivo = false;
+
+        if (gestorLocalizacao.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            gestorLocalizacao.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, 1000, 1f,
+                    ouvinteLocalizacao, Looper.getMainLooper());
+            fornecedorAtivo = true;
+        }
+
+        if (gestorLocalizacao.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            gestorLocalizacao.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, 1000, 1f,
+                    ouvinteLocalizacao, Looper.getMainLooper());
+            fornecedorAtivo = true;
+        }
+
+        atualizacoesLocalizacaoAtivas = fornecedorAtivo;
+
+        Location ultimaPosicao = gestorLocalizacao.getLastKnownLocation(
+                LocationManager.GPS_PROVIDER);
+        if (ultimaPosicao == null) {
+            ultimaPosicao = gestorLocalizacao.getLastKnownLocation(
+                    LocationManager.NETWORK_PROVIDER);
+        }
+        if (ultimaPosicao != null) {
+            atualizarPontoLocalizacao(ultimaPosicao);
+        }
+    }
+
+    private void atualizarPontoLocalizacao(Location localizacao) {
+        if (mapa == null) {
+            return;
+        }
+
+        LatLng posicao = new LatLng(
+                localizacao.getLatitude(), localizacao.getLongitude());
+
+        if (pontoLocalizacao == null) {
+            pontoLocalizacao = mapa.addCircle(new CircleOptions()
+                    .center(posicao)
+                    .radius(3d)
+                    .strokeColor(Color.rgb(25, 118, 210))
+                    .strokeWidth(3f)
+                    .fillColor(Color.argb(110, 33, 150, 243))
+                    .zIndex(10f));
+        } else {
+            pontoLocalizacao.setCenter(posicao);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pararAtualizacoesLocalizacao();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ativarLocalizacao();
+    }
+
+    private void pararAtualizacoesLocalizacao() {
+        if (gestorLocalizacao != null && atualizacoesLocalizacaoAtivas) {
+            gestorLocalizacao.removeUpdates(ouvinteLocalizacao);
+            atualizacoesLocalizacaoAtivas = false;
         }
     }
 }
