@@ -5,6 +5,7 @@ import android.os.Bundle;                    // Stores key-value data, such as a
 import androidx.appcompat.app.AppCompatActivity; // Base class providing Android Activity functionality.
 import pt.isep.dssmv.mapaisep.R;             // Provides IDs for application resources, such as XML layouts.
 import pt.isep.dssmv.mapaisep.services.AuthService;
+import pt.isep.dssmv.mapaisep.services.SessionManager;
 import android.content.Intent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.ParseException;
+import com.parse.ParseUser;
 
 public class LoginActivity extends AppCompatActivity {
     // Inherits methods for managing an Android Activity.
@@ -26,6 +28,21 @@ public class LoginActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         // Executes the parent class's onCreate() initialization.
+
+        // Reopens the last screen if the student returns before the timeout.
+        if (ParseUser.getCurrentUser() != null
+                && SessionManager.sessaoValida(this)) {
+            SessionManager.registarAtividade(this);
+            startActivity(new Intent(this, MenuPrincipal.class));
+            finish();
+            return;
+        }
+
+        // An expired session must require the password again.
+        if (ParseUser.getCurrentUser() != null) {
+            ParseUser.logOut();
+        }
+        SessionManager.terminarSessao(this);
 
         setContentView(R.layout.activity_login);
         // Loads res/layout/activity_login.xml and displays its interface.
@@ -122,6 +139,9 @@ public class LoginActivity extends AppCompatActivity {
                 // Success requires an authenticated user and no error.
                 if (error == null && user != null) {
                     inputPassword.setText("");
+
+                    // Stores the time of the session start, never the password.
+                    SessionManager.iniciarSessao(LoginActivity.this);
 
                     // Toast displays a temporary message on the screen.
                     // LoginActivity.this provides the current Activity's context.

@@ -39,6 +39,7 @@ import com.parse.ParseUser;
 
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.services.HorarioService;
+import pt.isep.dssmv.mapaisep.services.SessionManager;
 
 public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallback {
     private static final LatLng ISEP = new LatLng(41.178194, -8.607083);
@@ -147,6 +148,8 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
         View paginaInicio = findViewById(R.id.paginaInicio);
         View paginaMapa = findViewById(R.id.paginaMapa);
+        mostrarPagina(SessionManager.ultimaPaginaEraMapa(this), paginaInicio, paginaMapa);
+
         SupportMapFragment fragmentoMapa = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.mapaGoogle);
         if (fragmentoMapa != null) {
@@ -154,12 +157,10 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         }
 
         findViewById(R.id.btnInicio).setOnClickListener(v -> {
-            paginaInicio.setVisibility(View.VISIBLE);
-            paginaMapa.setVisibility(View.GONE);
+            mostrarPagina(false, paginaInicio, paginaMapa);
         });
         findViewById(R.id.btnMapa).setOnClickListener(v -> {
-            paginaInicio.setVisibility(View.GONE);
-            paginaMapa.setVisibility(View.VISIBLE);
+            mostrarPagina(true, paginaInicio, paginaMapa);
             pedirPermissaoOuAtivarLocalizacao();
         });
 
@@ -180,6 +181,7 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
     private void terminarSessao() {
         ParseUser.logOut();
+        SessionManager.terminarSessao(this);
 
         Intent irParaLogin = new Intent(this, LoginActivity.class);
         irParaLogin.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -303,6 +305,8 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onPause() {
+        // Saves the moment when the student leaves the app.
+        SessionManager.registarAtividade(this);
         super.onPause();
         pararAtualizacoesLocalizacao();
     }
@@ -310,6 +314,15 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onResume() {
         super.onResume();
+
+        // The timeout is also checked when the app returns from the background.
+        if (ParseUser.getCurrentUser() == null
+                || !SessionManager.sessaoValida(this)) {
+            terminarSessao();
+            return;
+        }
+
+        SessionManager.registarAtividade(this);
         ativarLocalizacao();
     }
 
@@ -318,5 +331,11 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             gestorLocalizacao.removeUpdates(ouvinteLocalizacao);
             atualizacoesLocalizacaoAtivas = false;
         }
+    }
+
+    private void mostrarPagina(boolean mostrarMapa, View paginaInicio, View paginaMapa) {
+        paginaInicio.setVisibility(mostrarMapa ? View.GONE : View.VISIBLE);
+        paginaMapa.setVisibility(mostrarMapa ? View.VISIBLE : View.GONE);
+        SessionManager.guardarPaginaMapa(this, mostrarMapa);
     }
 }
