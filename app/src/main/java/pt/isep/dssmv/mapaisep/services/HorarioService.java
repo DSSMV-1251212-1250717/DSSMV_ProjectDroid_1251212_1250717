@@ -1,5 +1,6 @@
 package pt.isep.dssmv.mapaisep.services;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -36,19 +37,38 @@ public class HorarioService {
     }
 
     // Retrieves today's lessons for the authenticated student.
-    public void obterAulasHoje(HorarioCallback callback) {
+    public void obterAulasHoje(Context context, HorarioCallback callback) {
         // UID identifies which student's document we need.
         String uid = AuthService.getCurrentUid();
 
-        // ID Token proves the student's identity to Firestore.
-        String idToken = AuthService.getIdToken();
-
-        if (uid == null || idToken == null) {
+        if (uid == null) {
             mainHandler.post(() -> callback.onResult(null, "NOT_AUTHENTICATED"));
-
             return;
         }
 
+        // Antes da consulta ao Firestore, confirma que o token ainda serve.
+        new AuthService().obterIdTokenValido(
+                context,
+                new AuthService.TokenCallback() {
+                    @Override
+                    public void onSuccess(String idToken) {
+                        obterAulasHojeComToken(uid, idToken, callback);
+                    }
+
+                    @Override
+                    public void onError(String errorCode) {
+                        callback.onResult(null, errorCode);
+                    }
+                }
+        );
+    }
+
+    // O token já foi confirmado ou renovado; agora podemos consultar o Firestore.
+    private void obterAulasHojeComToken(
+            String uid,
+            String idToken,
+            HorarioCallback callback
+    ) {
         // THREAD:
         // Create a secondary thread to perform HTTP requests.
         // This prevents the main thread from blocking the UI

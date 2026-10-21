@@ -12,6 +12,8 @@ public final class SessionManager {
     private static final String KEY_LAST_PAGE_IS_MAP = "last_page_is_map";
     private static final String KEY_UID = "uid";
     private static final String KEY_ID_TOKEN = "id_token";
+    private static final String KEY_REFRESH_TOKEN = "refresh_token";
+    private static final String KEY_ID_TOKEN_EXPIRES_AT = "id_token_expires_at";
 
     // Dois minutos em milissegundos.
     private static final long SESSION_TIMEOUT_MS = 2 * 60 * 1000L;
@@ -28,13 +30,17 @@ public final class SessionManager {
     public static void iniciarSessao(
             Context context,
             String uid,
-            String idToken
+            String idToken,
+            String refreshToken,
+            long idTokenExpiresAt
     ) {
         preferencias(context).edit()
                 .putBoolean(KEY_SESSION_ACTIVE, true)
                 .putLong(KEY_LAST_ACTIVE_AT, System.currentTimeMillis())
                 .putString(KEY_UID, uid)
                 .putString(KEY_ID_TOKEN, idToken)
+                .putString(KEY_REFRESH_TOKEN, refreshToken)
+                .putLong(KEY_ID_TOKEN_EXPIRES_AT, idTokenExpiresAt)
                 .apply();
     }
 
@@ -76,6 +82,28 @@ public final class SessionManager {
 
     public static String obterIdToken(Context context) {
         return preferencias(context).getString(KEY_ID_TOKEN, null);
+    }
+
+    public static String obterRefreshToken(Context context) {
+        return preferencias(context).getString(KEY_REFRESH_TOKEN, null);
+    }
+
+    public static long obterExpiracaoIdToken(Context context) {
+        return preferencias(context).getLong(KEY_ID_TOKEN_EXPIRES_AT, 0L);
+    }
+
+    /** Atualiza os tokens depois de o Firebase aceitar o refreshToken. */
+    public static void atualizarTokens(
+            Context context,
+            String idToken,
+            String refreshToken,
+            long idTokenExpiresAt
+    ) {
+        preferencias(context).edit()
+                .putString(KEY_ID_TOKEN, idToken)
+                .putString(KEY_REFRESH_TOKEN, refreshToken)
+                .putLong(KEY_ID_TOKEN_EXPIRES_AT, idTokenExpiresAt)
+                .apply();
     }
 
     /** Elimina a informação local da sessão. */

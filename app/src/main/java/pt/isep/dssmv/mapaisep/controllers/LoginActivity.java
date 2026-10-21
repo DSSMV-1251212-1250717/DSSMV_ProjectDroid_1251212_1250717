@@ -147,7 +147,8 @@ public class LoginActivity extends AppCompatActivity {
                         public void onSuccess(
                                 String uid,
                                 String idToken,
-                                String refreshToken
+                                String refreshToken,
+                                long idTokenExpiresAt
                         ) {
 
                             // Avoid updating an Activity that was closed.
@@ -163,7 +164,9 @@ public class LoginActivity extends AppCompatActivity {
                             SessionManager.iniciarSessao(
                                     LoginActivity.this,
                                     uid,
-                                    idToken
+                                    idToken,
+                                    refreshToken,
+                                    idTokenExpiresAt
                             );
 
                             // Display a success message.

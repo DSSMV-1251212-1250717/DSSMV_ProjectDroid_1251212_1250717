@@ -16,6 +16,23 @@ public class HttpClient {
     // Este método espera pela resposta. O serviço deve chamá-lo numa thread secundária.
     // idToken e corpo podem ser null quando o pedido não precisa desses dados.
     public HttpResponse enviarPedido(String endereco, String metodo, String idToken, String corpo) throws IOException {
+        return enviarPedido(
+                endereco,
+                metodo,
+                idToken,
+                corpo,
+                "application/json; charset=UTF-8"
+        );
+    }
+
+    // Permite enviar formulários quando uma API não recebe JSON.
+    public HttpResponse enviarPedido(
+            String endereco,
+            String metodo,
+            String idToken,
+            String corpo,
+            String contentType
+    ) throws IOException {
         HttpURLConnection connection = null;
 
         try {
@@ -34,7 +51,7 @@ public class HttpClient {
             }
 
             if (corpo != null) {
-                connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                connection.setRequestProperty("Content-Type", contentType);
                 connection.setDoOutput(true);
 
                 // Serialização: o texto JSON é convertido em bytes para ser enviado.

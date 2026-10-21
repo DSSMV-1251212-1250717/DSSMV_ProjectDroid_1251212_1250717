@@ -285,7 +285,7 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         //
         // This is the connection between MenuPrincipal and
         // HorarioService. No additional thread is needed here.
-        horarioService.obterAulasHoje(callback);
+        horarioService.obterAulasHoje(this, callback);
     }
 
     // Ends the current authentication session.
