@@ -165,6 +165,11 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             menuConta.getMenuInflater().inflate(R.menu.menu_account, menuConta.getMenu());
 
             menuConta.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_friends) {
+                    startActivity(new Intent(this, AmigosActivity.class));
+                    return true;
+                }
+
                 if (item.getItemId() == R.id.action_logout) {
                     terminarSessao();
                     return true;

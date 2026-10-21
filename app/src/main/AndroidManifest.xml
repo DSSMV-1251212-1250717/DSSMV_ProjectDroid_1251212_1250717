@@ -41,6 +41,10 @@
             android:name=".controllers.MenuPrincipal"
             android:exported="false" />
 
+        <activity
+            android:name=".controllers.AmigosActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

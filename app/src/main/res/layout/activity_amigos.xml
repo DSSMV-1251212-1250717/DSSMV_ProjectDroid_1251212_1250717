@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/campus_background"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end">
+
+        <ImageButton
+            android:id="@+id/btnMenuAmigos"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_menu_hamburger"
+            android:contentDescription="@string/open_account_menu"
+            android:background="@color/white"
+            android:padding="12dp"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+    <TextView
+        style="@style/CampusLabel"
+        android:layout_marginTop="28dp"
+        android:text="@string/friends_title"
+        android:textSize="28sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="@drawable/bg_campus_card">
+
+        <TextView
+            style="@style/CampusLabel"
+            android:text="@string/friends_add_title"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/inputNumeroAmigo"
+            style="@style/CampusInput"
+            android:hint="@string/friends_number_hint"
+            android:inputType="number"
+            android:maxLength="7" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAdicionarAmigo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:minHeight="52dp"
+            android:text="@string/friends_add_button"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/campus_button_red" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textoEstadoAmigos"
+        style="@style/CampusBody"
+        android:layout_marginTop="24dp"
+        android:text="@string/friends_loading" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp">
+
+        <LinearLayout
+            android:id="@+id/listaAmigos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+</LinearLayout>
