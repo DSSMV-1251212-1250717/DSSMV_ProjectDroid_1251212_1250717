@@ -25,22 +25,18 @@ public class HorarioService {
     private final HttpClient httpClient = new HttpClient();
     private final AulaMapper aulaMapper = new AulaMapper();
 
-    // Allows the secondary thread to schedule the callback
-    // on Android's main thread.
+    // Põe o resultado na fila da main thread.
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    // Defines the method that the caller must implement
-    // to receive the timetable or an error.
+    // Interface que quem chama implementa para receber o horário ou o erro.
     public interface HorarioCallback {
         void onResult(List<Aula> resultado, String erro);
     }
 
-    // Retrieves today's lessons for the authenticated student.
+    // Vai buscar as aulas de hoje do aluno autenticado.
     public void obterAulasHoje(HorarioCallback callback) {
-        // UID identifies which student's document we need.
+        // uid: qual o aluno. idToken: prova a identidade ao Firestore.
         String uid = AuthService.getCurrentUid();
-
-        // ID Token proves the student's identity to Firestore.
         String idToken = AuthService.getIdToken();
 
         if (uid == null || idToken == null) {
@@ -49,22 +45,13 @@ public class HorarioService {
             return;
         }
 
-        // THREAD:
-        // Create a secondary thread to perform HTTP requests.
-        // This prevents the main thread from blocking the UI
-        // while waiting for Firestore responses.
+        // Thread secundária: a rede não pode bloquear a main thread.
         new Thread(() -> {
             try {
-                // STEP 1: Retrieve the student's class.
-                //
-                // The Firestore document ID matches the
-                // Firebase Authentication UID.
+                // 1. Turma do aluno (o documento do aluno tem o uid como id).
                 String turmaId = consultarTurma(uid, idToken);
 
-                // STEP 2: Determine the current weekday.
-                //
-                // Our database uses:
-                // 1 = Monday, ..., 7 = Sunday.
+                // 2. Dia da semana, na nossa base: 1 = segunda ... 7 = domingo.
                 Calendar calendar = Calendar.getInstance();
 
                 int diaAndroid = calendar.get(Calendar.DAY_OF_WEEK);
@@ -76,19 +63,13 @@ public class HorarioService {
                     diaSemana = diaAndroid - 1;
                 }
 
-                // STEP 3: Build a Firestore query.
-                //
-                // Retrieve lessons matching the student's
-                // class and the current weekday.
+                // 3. Consulta: aulas desta turma neste dia.
                 JSONObject request = construirConsulta(turmaId, diaSemana);
 
-                // STEP 4: Send the HTTP request to Firestore.
-                //
-                // runQuery uses POST because its filters
-                // are sent in the JSON request body.
+                // 4. runQuery usa POST porque os filtros vão no corpo JSON.
                 String respostaJson = enviarPedido(FirebaseConfig.FIRESTORE_URL + ":runQuery", "POST", idToken, request);
 
-                // STEP 5: Deserialize the received JSON.
+                // 5. Desserialização da resposta.
                 JSONArray documentos = new JSONArray(respostaJson);
 
                 List<Aula> resultado = new ArrayList<>();
@@ -96,7 +77,7 @@ public class HorarioService {
                 for (int i = 0; i < documentos.length(); i++) {
                     JSONObject item = documentos.getJSONObject(i);
 
-                    // Firestore can return responses without documents.
+                    // O Firestore pode devolver entradas sem documento.
                     if (!item.has("document")) {
                         continue;
                     }
@@ -105,45 +86,19 @@ public class HorarioService {
 
                     JSONObject campos = documento.getJSONObject("fields");
 
-                    // DESERIALIZATION: JSON -> AulaDTO
-                    //
-                    // Read the JSON fields and create an AulaDTO.
-                    // The DTO keeps data in the API's format,
-                    // such as "09:00" stored as a String.
+                    // JSON -> AulaDTO (dados no formato da API, ex.: "09:00" como texto).
                     AulaDTO dto = aulaMapper.desserializarAula(campos);
 
-                    // DTO TO MODEL: AulaDTO -> Aula
-                    //
-                    // Convert strings into their Java data types.
-                    // For example, "09:00" becomes a LocalTime.
-                    // Also create a Sala object.
-                    //
-                    // The Aula constructor validates the data.
+                    // AulaDTO -> Aula ("09:00" passa a LocalTime; o construtor valida).
                     Aula modelo = aulaMapper.converterParaModelo(dto);
 
-                    // Add the validated Model object to the list.
                     resultado.add(modelo);
                 }
 
-                // Sort the lessons by their starting time.
+                // Ordena pela hora de início.
                 Collections.sort(resultado, (primeira, segunda) -> primeira.getHoraInicio().compareTo(segunda.getHoraInicio()));
 
-                // CALLBACK - STEP 3:
-                //
-                // MenuPrincipal previously gave this service
-                // a callback object containing its onResult()
-                // implementation.
-                //
-                // Now that the HTTP requests have finished,
-                // HorarioService has the requested data.
-                //
-                // Handler.post() places a task in the main
-                // thread's execution queue.
-                //
-                // The main thread will call callback.onResult(),
-                // executing the code implemented in MenuPrincipal.
-                //
-                // The result list is passed as an argument.
+                // Entrega o resultado na main thread: corre o onResult do MenuPrincipal.
                 mainHandler.post(() -> callback.onResult(resultado, null));
             } catch (IOException e) {
                 String mensagem = e.getMessage();
@@ -152,10 +107,10 @@ public class HorarioService {
                 }
                 final String erro = mensagem;
 
-                // Return the error on the main thread.
+                // O erro também é entregue na main thread.
                 mainHandler.post(() -> callback.onResult(null, erro));
             } catch (JSONException | IllegalArgumentException | DateTimeException e) {
-                // Handle invalid data or Model conversion errors.
+                // JSON inválido ou dados que o modelo rejeita.
                 final String erro = "INVALID_LESSON_DATA";
 
                 mainHandler.post(() -> callback.onResult(null, erro));
@@ -163,22 +118,20 @@ public class HorarioService {
         }).start();
     }
 
-    // Retrieves the student's class identifier from Firestore.
+    // GET ao documento do aluno para ler a turma (ex.: "TurmaB").
     private String consultarTurma(String uid, String idToken) throws IOException, JSONException {
         String endereco = FirebaseConfig.FIRESTORE_URL + "/alunos/" + uid;
 
-        // First HTTP request: GET the student's document.
         String resposta = enviarPedido(endereco, "GET", idToken, null);
 
         JSONObject documento = new JSONObject(resposta);
 
         JSONObject campos = documento.getJSONObject("fields");
 
-        // Read the class identifier, for example "TurmaB".
         return campos.getJSONObject("turmaId").getString("stringValue");
     }
 
-    // Creates a Firestore query for class and weekday.
+    // Constrói a consulta do Firestore: turma E dia da semana.
     private JSONObject construirConsulta(String turmaId, int diaSemana) throws JSONException {
         JSONObject filtroTurma = criarFiltro("turmaId", new JSONObject().put("stringValue", turmaId));
 
@@ -208,13 +161,11 @@ public class HorarioService {
         JSONObject request = new JSONObject();
         request.put("structuredQuery", structuredQuery);
 
-        // SERIALIZATION:
-        // enviarPedido() will convert this JSONObject into text
-        // and send it in the HTTP request body.
+        // Serialização: o enviarPedido() converte isto em texto para o corpo do pedido.
         return request;
     }
 
-    // Creates a Firestore equality filter.
+    // Cria um filtro de igualdade do Firestore (campo == valor).
     private JSONObject criarFiltro(String campo, JSONObject valor) throws JSONException {
         JSONObject field = new JSONObject();
         field.put("fieldPath", campo);

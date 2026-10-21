@@ -86,6 +86,7 @@ public class AuthService {
     public static String getCurrentUid() {
         return currentUid;
     }
+    //O getIdToken é static
 
     // O ID token é enviado como Bearer token nos pedidos ao Firestore.
     // A renovação automática com o refreshToken ainda não está implementada.

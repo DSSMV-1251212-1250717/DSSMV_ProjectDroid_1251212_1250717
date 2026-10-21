@@ -6,7 +6,12 @@ import android.content.SharedPreferences;
 /** Guarda no dispositivo apenas o estado e o tempo da sessão atual. */
 public final class SessionManager {
 
+    // Nome do ficheiro de preferências onde a sessão fica guardada no dispositivo.
+// Ainda não abre nada: o ficheiro só é aberto em preferencias(), ao passar este nome ao Android.
     private static final String PREFS_NAME = "mapa_isep_session";
+
+    // Cada constante é o nome de um valor guardado nesse ficheiro.
+// O mesmo nome é usado para gravar (put) e para ler (get) o valor.
     private static final String KEY_SESSION_ACTIVE = "session_active";
     private static final String KEY_LAST_ACTIVE_AT = "last_active_at";
     private static final String KEY_LAST_PAGE_IS_MAP = "last_page_is_map";
