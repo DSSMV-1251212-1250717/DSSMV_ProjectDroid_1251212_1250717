@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Toast;
@@ -31,13 +32,22 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.model.Aula;
+import pt.isep.dssmv.mapaisep.model.LocalizacaoAmigo;
+import pt.isep.dssmv.mapaisep.services.AmigosService;
 import pt.isep.dssmv.mapaisep.services.AuthService;
 import pt.isep.dssmv.mapaisep.services.HorarioService;
+import pt.isep.dssmv.mapaisep.services.LocalizacaoService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
 
 public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallback {
@@ -90,6 +100,22 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     private LocationListener ouvinteLocalizacao;
     private Circle pontoLocalizacao;
     private boolean atualizacoesLocalizacaoAtivas;
+    private final LocalizacaoService localizacaoService = new LocalizacaoService();
+    private final Map<String, Marker> marcadoresAmigos = new HashMap<>();
+    private final Handler handlerAmigos = new Handler(Looper.getMainLooper());
+    private boolean mapaAberto;
+    private Location ultimaLocalizacaoPartilhada;
+    private long ultimoEnvioLocalizacao;
+
+    private final Runnable atualizarAmigos = new Runnable() {
+        @Override
+        public void run() {
+            consultarLocalizacoesAmigos();
+            if (mapaAberto) {
+                handlerAmigos.postDelayed(this, 5000);
+            }
+        }
+    };
 
     @Override
 
@@ -152,8 +178,6 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         findViewById(R.id.btnMapa).setOnClickListener(v -> {
 
             mostrarPagina(true, paginaInicio, paginaMapa);
-
-            pedirPermissaoOuAtivarLocalizacao();
         });
 
         // Configure the account menu.
@@ -444,11 +468,81 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         } else {
             pontoLocalizacao.setCenter(posicao);
         }
+
+        // O mesmo GPS que move o ponto azul atualiza a posição partilhada.
+        if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
+            localizacaoService.atualizarMinhaLocalizacao(
+                    this, localizacao.getLatitude(), localizacao.getLongitude()
+            );
+            ultimaLocalizacaoPartilhada = new Location(localizacao);
+            ultimoEnvioLocalizacao = System.currentTimeMillis();
+        }
+    }
+
+    // Evita enviar um PATCH por cada pequena variação do GPS.
+    private boolean deveEnviarLocalizacao(Location localizacao) {
+        return ultimaLocalizacaoPartilhada == null
+                || ultimaLocalizacaoPartilhada.distanceTo(localizacao) >= 3f
+                || System.currentTimeMillis() - ultimoEnvioLocalizacao >= 5000;
+    }
+
+    private void iniciarConsultaAmigos() {
+        handlerAmigos.removeCallbacks(atualizarAmigos);
+        handlerAmigos.post(atualizarAmigos);
+    }
+
+    private void pararConsultaAmigos() {
+        handlerAmigos.removeCallbacks(atualizarAmigos);
+    }
+
+    private void consultarLocalizacoesAmigos() {
+        if (!mapaAberto || mapa == null) {
+            return;
+        }
+
+        new AmigosService().listarAmigos(this, (amigos, erro) -> {
+            if (erro != null || amigos == null || !mapaAberto) {
+                return;
+            }
+
+            localizacaoService.obterLocalizacoesAmigos(this, amigos, (localizacoes, erroLocalizacao) -> {
+                if (erroLocalizacao != null || localizacoes == null || !mapaAberto || mapa == null) {
+                    return;
+                }
+
+                Set<String> amigosComPosicao = new HashSet<>();
+                for (LocalizacaoAmigo localizacao : localizacoes) {
+                    amigosComPosicao.add(localizacao.getUid());
+                    LatLng posicao = new LatLng(localizacao.getLatitude(), localizacao.getLongitude());
+                    Marker marcador = marcadoresAmigos.get(localizacao.getUid());
+
+                    if (marcador == null) {
+                        marcador = mapa.addMarker(new MarkerOptions()
+                                .position(posicao)
+                                .title(localizacao.getNome()));
+                        marcadoresAmigos.put(localizacao.getUid(), marcador);
+                    } else {
+                        marcador.setPosition(posicao);
+                    }
+                }
+
+                // Se já não houver localização no Firebase, remove o marcador do mapa.
+                for (String uid : new HashSet<>(marcadoresAmigos.keySet())) {
+                    if (!amigosComPosicao.contains(uid)) {
+                        Marker marcador = marcadoresAmigos.remove(uid);
+                        if (marcador != null) {
+                            marcador.remove();
+                        }
+                    }
+                }
+            });
+        });
     }
 
     @Override
     protected void onPause() {
         SessionManager.registarAtividade(this);
+        pararConsultaAmigos();
         super.onPause();
         pararAtualizacoesLocalizacao();
     }
@@ -465,6 +559,9 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
         SessionManager.registarAtividade(this);
         ativarLocalizacao();
+        if (mapaAberto) {
+            iniciarConsultaAmigos();
+        }
     }
 
     private void pararAtualizacoesLocalizacao() {
@@ -479,5 +576,13 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         paginaInicio.setVisibility(mostrarMapa ? View.GONE : View.VISIBLE);
         paginaMapa.setVisibility(mostrarMapa ? View.VISIBLE : View.GONE);
         SessionManager.guardarPaginaMapa(this, mostrarMapa);
+        mapaAberto = mostrarMapa;
+
+        if (mostrarMapa) {
+            pedirPermissaoOuAtivarLocalizacao();
+            iniciarConsultaAmigos();
+        } else {
+            pararConsultaAmigos();
+        }
     }
 }
