@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
@@ -44,15 +46,19 @@ import java.util.Set;
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.model.Aula;
 import pt.isep.dssmv.mapaisep.model.LocalizacaoAmigo;
+import pt.isep.dssmv.mapaisep.model.LocalMapa;
 import pt.isep.dssmv.mapaisep.services.AmigosService;
 import pt.isep.dssmv.mapaisep.services.AuthService;
 import pt.isep.dssmv.mapaisep.services.HorarioService;
 import pt.isep.dssmv.mapaisep.services.LocalizacaoService;
+import pt.isep.dssmv.mapaisep.services.LocaisService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
 
 public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallback {
     // ISEP campus location.
     private static final LatLng ISEP = new LatLng(41.178194, -8.607083);
+    // A biblioteca é um ponto fixo e fica sempre visível no mapa.
+    private static final LatLng BIBLIOTECA_ISEP = new LatLng(41.178766, -8.606559);
 
     // Geographic limits of the campus.
     private static final LatLngBounds CAMPUS_ISEP = new LatLngBounds(new LatLng(41.1770955, -8.6091907), new LatLng(41.1795948, -8.6056156));
@@ -101,7 +107,12 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     private Circle pontoLocalizacao;
     private boolean atualizacoesLocalizacaoAtivas;
     private final LocalizacaoService localizacaoService = new LocalizacaoService();
+    private final LocaisService locaisService = new LocaisService();
     private final Map<String, Marker> marcadoresAmigos = new HashMap<>();
+    private final Map<String, Marker> marcadoresLocais = new HashMap<>();
+    private Marker marcadorBiblioteca;
+    private List<LocalMapa> locaisCampus = new ArrayList<>();
+    private List<Aula> aulasHoje = new ArrayList<>();
     private final Handler handlerAmigos = new Handler(Looper.getMainLooper());
     private boolean mapaAberto;
     private Location ultimaLocalizacaoPartilhada;
@@ -189,6 +200,16 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             menuConta.getMenuInflater().inflate(R.menu.menu_account, menuConta.getMenu());
 
             menuConta.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_home) {
+                    mostrarPagina(false, paginaInicio, paginaMapa);
+                    return true;
+                }
+
+                if (item.getItemId() == R.id.action_profile) {
+                    startActivity(new Intent(this, PerfilActivity.class));
+                    return true;
+                }
+
                 if (item.getItemId() == R.id.action_friends) {
                     startActivity(new Intent(this, AmigosActivity.class));
                     return true;
@@ -262,6 +283,10 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                     }
                     return;
                 }
+
+                // A próxima aula será usada no mapa para destacar a sala correta.
+                aulasHoje = new ArrayList<>(resultado);
+                desenharMarcadoresLocais();
 
                 // Display a message if there are no lessons today.
                 if (resultado.isEmpty()) {
@@ -348,6 +373,8 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         adicionarMascaraExterior();
 
         mapa.addMarker(new MarkerOptions().position(ISEP).title("ISEP"));
+        desenharBiblioteca();
+        carregarLocais();
 
         mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(41.17827, -8.60727), 19f));
 
@@ -362,6 +389,88 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                 new LatLng(41.10, -8.70));
 
         mapa.addPolygon(new PolygonOptions().addAll(limiteExterior).addHole(CONTORNO_ISEP).strokeWidth(0f).fillColor(Color.WHITE).clickable(false));
+    }
+
+    // A biblioteca não depende do horário: é sempre um ponto de interesse do campus.
+    private void desenharBiblioteca() {
+        if (mapa == null || marcadorBiblioteca != null) {
+            return;
+        }
+
+        marcadorBiblioteca = mapa.addMarker(new MarkerOptions()
+                .position(BIBLIOTECA_ISEP)
+                .title("Biblioteca ISEP")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+    }
+
+    // Obtém as salas e a biblioteca guardadas na coleção Firestore locais.
+    private void carregarLocais() {
+        locaisService.obterLocais(this, (resultado, erro) -> {
+            if (mapa == null) {
+                return;
+            }
+
+            if (erro != null) {
+                Toast.makeText(this, "Não foi possível carregar os locais do mapa (" + erro + ")", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (resultado == null || resultado.isEmpty()) {
+                Toast.makeText(this, "Não existem locais válidos para mostrar no mapa.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            locaisCampus = resultado;
+            desenharMarcadoresLocais();
+        });
+    }
+
+    // Só desenha a sala da aula atual ou próxima. A biblioteca é desenhada à parte.
+    private void desenharMarcadoresLocais() {
+        if (mapa == null) {
+            return;
+        }
+
+        Aula proxima = obterProximaAula();
+
+        for (Marker marcador : marcadoresLocais.values()) {
+            marcador.remove();
+        }
+        marcadoresLocais.clear();
+
+        if (proxima == null || locaisCampus.isEmpty()) {
+            return;
+        }
+
+        String idProximaSala = proxima.getSala().getCodigo();
+        for (LocalMapa local : locaisCampus) {
+            if (!local.getId().equals(idProximaSala)) {
+                continue;
+            }
+
+            String estado = proxima.estaADecorrer(java.time.LocalTime.now())
+                    ? "Aula atual: "
+                    : "Próxima aula: ";
+            Marker marcador = mapa.addMarker(new MarkerOptions()
+                    .position(new LatLng(local.getLatitude(), local.getLongitude()))
+                    .title(estado + proxima.getDisciplina()
+                            + " — " + local.getNome()
+                            + " às " + proxima.getHoraInicio())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            marcadoresLocais.put(local.getId(), marcador);
+            return;
+        }
+    }
+
+    // A lista vem ordenada por horaInicio: usa a aula atual ou, se não existir, a próxima.
+    private Aula obterProximaAula() {
+        java.time.LocalTime agora = java.time.LocalTime.now();
+        for (Aula aula : aulasHoje) {
+            if (aula.estaADecorrer(agora) || !aula.getHoraInicio().isBefore(agora)) {
+                return aula;
+            }
+        }
+        return null;
     }
 
     // Requests location permissions if necessary.

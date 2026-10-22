@@ -44,6 +44,7 @@
         <activity
             android:name=".controllers.AmigosActivity"
             android:exported="false" />
+        <activity android:name=".controllers.PerfilActivity" android:exported="false" />
 
     </application>
 

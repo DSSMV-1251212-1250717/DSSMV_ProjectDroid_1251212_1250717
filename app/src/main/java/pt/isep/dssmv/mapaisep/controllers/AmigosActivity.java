@@ -59,12 +59,23 @@ public class AmigosActivity extends AppCompatActivity {
     // Abre as mesmas opções principais disponíveis no ecrã inicial.
     private void abrirMenu(android.view.View ancora) {
         PopupMenu menu = new PopupMenu(this, ancora);
-        menu.getMenuInflater().inflate(R.menu.menu_amigos, menu.getMenu());
+        menu.getMenuInflater().inflate(R.menu.menu_account, menu.getMenu());
 
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_home) {
-                // A Activity principal já está no histórico: fechamos esta e voltamos a ela.
+                Intent inicio = new Intent(this, MenuPrincipal.class);
+                inicio.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(inicio);
                 finish();
+                return true;
+            }
+
+            if (item.getItemId() == R.id.action_profile) {
+                startActivity(new Intent(this, PerfilActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.action_friends) {
                 return true;
             }
 
