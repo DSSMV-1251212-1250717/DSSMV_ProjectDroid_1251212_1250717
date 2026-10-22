@@ -53,5 +53,24 @@
     <string name="campus_map_title">O campus na tua mão.</string>
     <string name="campus_map_body">Estamos a preparar este espaço para explorares os edifícios e encontrares a tua sala.</string>
     <string name="open_account_menu">Abrir menu da conta</string>
+    <string name="friends">Amigos</string>
+    <string name="profile">Perfil</string>
+    <string name="profile_title">O teu perfil</string>
+    <string name="profile_number">Número de estudante</string>
+    <string name="profile_class">Turma</string>
+    <string name="profile_error">Não foi possível carregar o perfil.</string>
+    <string name="friends_title">Os teus amigos</string>
+    <string name="friends_add_title">Adicionar amigo</string>
+    <string name="friends_number_hint">Número de estudante do amigo</string>
+    <string name="friends_add_button">Adicionar</string>
+    <string name="friends_loading">A carregar amigos…</string>
+    <string name="friends_empty">Ainda não adicionaste amigos.</string>
+    <string name="friends_remove">Remover</string>
+    <string name="friends_added">Amigo adicionado.</string>
+    <string name="friends_removed">Amigo removido.</string>
+    <string name="friends_invalid_number">O número deve ter exatamente 7 dígitos.</string>
+    <string name="friends_not_found">Não existe um aluno com esse número.</string>
+    <string name="friends_self">Não podes adicionar-te a ti próprio.</string>
+    <string name="friends_error">Não foi possível atualizar a lista de amigos.</string>
     <string name="logout">Terminar sessão</string>
 </resources>
