@@ -9,6 +9,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,20 +36,34 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.model.Aula;
+import pt.isep.dssmv.mapaisep.model.LocalizacaoAmigo;
+import pt.isep.dssmv.mapaisep.model.LocalMapa;
+import pt.isep.dssmv.mapaisep.services.AmigosService;
 import pt.isep.dssmv.mapaisep.services.AuthService;
 import pt.isep.dssmv.mapaisep.services.BibliotecaService;
 import pt.isep.dssmv.mapaisep.services.DetetorPresenca;
 import pt.isep.dssmv.mapaisep.services.HorarioService;
+import pt.isep.dssmv.mapaisep.services.LocalizacaoService;
+import pt.isep.dssmv.mapaisep.services.LocaisService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
 
 public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallback {
     // ISEP campus location.
     private static final LatLng ISEP = new LatLng(41.178194, -8.607083);
+    // A biblioteca é um ponto fixo e fica sempre visível no mapa.
+    private static final LatLng BIBLIOTECA_ISEP = new LatLng(41.178766, -8.606559);
 
     // Geographic limits of the campus.
     private static final LatLngBounds CAMPUS_ISEP = new LatLngBounds(new LatLng(41.1770955, -8.6091907), new LatLng(41.1795948, -8.6056156));
@@ -95,6 +111,27 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     private LocationListener ouvinteLocalizacao;
     private Circle pontoLocalizacao;
     private boolean atualizacoesLocalizacaoAtivas;
+    private final LocalizacaoService localizacaoService = new LocalizacaoService();
+    private final LocaisService locaisService = new LocaisService();
+    private final Map<String, Marker> marcadoresAmigos = new HashMap<>();
+    private final Map<String, Marker> marcadoresLocais = new HashMap<>();
+    private Marker marcadorBiblioteca;
+    private List<LocalMapa> locaisCampus = new ArrayList<>();
+    private List<Aula> aulasHoje = new ArrayList<>();
+    private final Handler handlerAmigos = new Handler(Looper.getMainLooper());
+    private boolean mapaAberto;
+    private Location ultimaLocalizacaoPartilhada;
+    private long ultimoEnvioLocalizacao;
+
+    private final Runnable atualizarAmigos = new Runnable() {
+        @Override
+        public void run() {
+            consultarLocalizacoesAmigos();
+            if (mapaAberto) {
+                handlerAmigos.postDelayed(this, 5000);
+            }
+        }
+    };
 
     // Deteta, pelo Wi-Fi, se o aluno está na biblioteca e atualiza a presença no Firestore.
     private DetetorPresenca detetorPresenca;
@@ -131,11 +168,6 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         setContentView(R.layout.menu_principal);
 
         carregarHorario();
-        // chama o servico de horario
-        //prenche a interface disponibilizada pelo servico horario
-        //com as instrucoes para realzizar depois de ir buscar a informacao
-        //o service garante entregar a informacao
-
         carregarLotacaoBiblioteca();
 
         // No fim de cada ciclo do detetor, volta a pedir a lotação (o número no ecrã acompanha quem entra e sai).
@@ -197,8 +229,6 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         findViewById(R.id.btnMapa).setOnClickListener(v -> {
 
             mostrarPagina(true, paginaInicio, paginaMapa);
-
-            pedirPermissaoOuAtivarLocalizacao();
         });
 
         // Configure the account menu.
@@ -210,6 +240,21 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             menuConta.getMenuInflater().inflate(R.menu.menu_account, menuConta.getMenu());
 
             menuConta.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_home) {
+                    mostrarPagina(false, paginaInicio, paginaMapa);
+                    return true;
+                }
+
+                if (item.getItemId() == R.id.action_profile) {
+                    startActivity(new Intent(this, PerfilActivity.class));
+                    return true;
+                }
+
+                if (item.getItemId() == R.id.action_friends) {
+                    startActivity(new Intent(this, AmigosActivity.class));
+                    return true;
+                }
+
                 if (item.getItemId() == R.id.action_logout) {
                     terminarSessao();
                     return true;
@@ -222,22 +267,39 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         });
     }
 
-    // Pede o horário ao HorarioService e mostra-o na página Início.
+    // Mantém o carregamento do horário separado da configuração do mapa e dos menus.
     private void carregarHorario() {
+        // Get the TextView where the timetable will be displayed.
         TextView textoAulas = findViewById(R.id.textoAulas);
 
-        // Mensagem mostrada enquanto o pedido HTTP decorre.
+        // Show a message while the HTTP request is running.
         textoAulas.setText(R.string.horario_loading);
 
-        // O serviço vai buscar os dados; a Activity só os mostra.
+        // HorarioService is responsible for retrieving the timetable
+        // from Firestore. MenuPrincipal is responsible for displaying it.
         HorarioService horarioService = new HorarioService();
 
-        // Callback: diz o que fazer quando o serviço tiver o horário.
-        // Criar este objeto não executa o onResult().
+        // CALLBACK - STEP 1: CREATE THE CALLBACK
+        //
+        // MenuPrincipal creates an object implementing HorarioCallback.
+        // This object contains the onResult() method defined below.
+        //
+        // The method specifies what MenuPrincipal should do when
+        // HorarioService finishes retrieving the timetable.
+        //
+        // Creating this object does NOT execute onResult().
         HorarioService.HorarioCallback callback = new HorarioService.HorarioCallback() {
-
-            // Chamado pelo serviço na main thread (através do Handler),
-            // por isso pode alterar a interface.
+            // CALLBACK - STEP 3: RECEIVE THE RESULT
+            //
+            // HorarioService eventually calls:
+            // callback.onResult(resultado, null);
+            //
+            // Java executes THIS implementation of onResult().
+            // The result list is received as an argument.
+            //
+            // HorarioService uses a Handler to execute this
+            // method on the main thread, because this code
+            // updates the application's interface.
             @Override
             public void onResult(List<Aula> resultado, String erro) {
                 // Ignore results if the Activity was closed.
@@ -262,6 +324,10 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                     return;
                 }
 
+                // A próxima aula será usada no mapa para destacar a sala correta.
+                aulasHoje = new ArrayList<>(resultado);
+                desenharMarcadoresLocais();
+
                 // Display a message if there are no lessons today.
                 if (resultado.isEmpty()) {
                     textoAulas.setText(R.string.horario_empty);
@@ -272,13 +338,16 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                 StringBuilder horario = new StringBuilder();
 
                 for (int i = 0; i < resultado.size(); i++) {
+                    // Get an Aula Model object from the list.
                     Aula item = resultado.get(i);
 
                     if (horario.length() > 0) {
                         horario.append("\n\n");
                     }
 
-                    // Hora de início, hora de fim, disciplina e sala.
+                    // Displays starting time, ending time,
+                    // subject name and room code.
+                    // A apresentação pertence à Activity, não ao toString() do modelo.
                     horario.append(getString(R.string.horario_lesson_details, item.getHoraInicio().toString(), item.getHoraFim().toString(),
                             item.getDisciplina(), item.getSala().getCodigo()));
                 }
@@ -288,11 +357,32 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             }
         };
 
-        // Entrega o callback ao serviço. O serviço faz o pedido numa thread
-        // secundária e este método retorna logo, sem esperar pelo Firestore.
-        horarioService.obterAulasHoje(callback);
+        // CALLBACK - STEP 2: PASS THE CALLBACK TO THE SERVICE
+        //
+        // MenuPrincipal calls obterAulasHoje() and passes the
+        // callback object created above.
+        //
+        // HorarioService receives this object as a parameter
+        // and starts a secondary thread to contact Firestore.
+        //
+        // The service uses the device's current date to determine
+        // the weekday and retrieve today's lessons.
+        //
+        // obterAulasHoje() returns without waiting for Firestore.
+        // The main thread remains available to manage the UI.
+        //
+        // When the HTTP requests finish, HorarioService uses a
+        // Handler to schedule callback.onResult() on the main thread.
+        //
+        // That executes the method implemented above and passes
+        // the retrieved Aula objects back to MenuPrincipal.
+        //
+        // This is the connection between MenuPrincipal and
+        // HorarioService. No additional thread is needed here.
+        horarioService.obterAulasHoje(this, callback);
     }
 
+    // Mantém o pedido da lotação da biblioteca iniciado quando o menu abre.
     private void carregarLotacaoBiblioteca() {
         // Caixa de texto da biblioteca (menu_principal.xml).
         TextView textoBiblioteca = findViewById(R.id.textoBiblioteca);
@@ -366,6 +456,8 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         adicionarMascaraExterior();
 
         mapa.addMarker(new MarkerOptions().position(ISEP).title("ISEP"));
+        desenharBiblioteca();
+        carregarLocais();
 
         mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(41.17827, -8.60727), 19f));
 
@@ -380,6 +472,88 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                 new LatLng(41.10, -8.70));
 
         mapa.addPolygon(new PolygonOptions().addAll(limiteExterior).addHole(CONTORNO_ISEP).strokeWidth(0f).fillColor(Color.WHITE).clickable(false));
+    }
+
+    // A biblioteca não depende do horário: é sempre um ponto de interesse do campus.
+    private void desenharBiblioteca() {
+        if (mapa == null || marcadorBiblioteca != null) {
+            return;
+        }
+
+        marcadorBiblioteca = mapa.addMarker(new MarkerOptions()
+                .position(BIBLIOTECA_ISEP)
+                .title("Biblioteca ISEP")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+    }
+
+    // Obtém as salas e a biblioteca guardadas na coleção Firestore locais.
+    private void carregarLocais() {
+        locaisService.obterLocais(this, (resultado, erro) -> {
+            if (mapa == null) {
+                return;
+            }
+
+            if (erro != null) {
+                Toast.makeText(this, "Não foi possível carregar os locais do mapa (" + erro + ")", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (resultado == null || resultado.isEmpty()) {
+                Toast.makeText(this, "Não existem locais válidos para mostrar no mapa.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            locaisCampus = resultado;
+            desenharMarcadoresLocais();
+        });
+    }
+
+    // Só desenha a sala da aula atual ou próxima. A biblioteca é desenhada à parte.
+    private void desenharMarcadoresLocais() {
+        if (mapa == null) {
+            return;
+        }
+
+        Aula proxima = obterProximaAula();
+
+        for (Marker marcador : marcadoresLocais.values()) {
+            marcador.remove();
+        }
+        marcadoresLocais.clear();
+
+        if (proxima == null || locaisCampus.isEmpty()) {
+            return;
+        }
+
+        String idProximaSala = proxima.getSala().getCodigo();
+        for (LocalMapa local : locaisCampus) {
+            if (!local.getId().equals(idProximaSala)) {
+                continue;
+            }
+
+            String estado = proxima.estaADecorrer(java.time.LocalTime.now())
+                    ? "Aula atual: "
+                    : "Próxima aula: ";
+            Marker marcador = mapa.addMarker(new MarkerOptions()
+                    .position(new LatLng(local.getLatitude(), local.getLongitude()))
+                    .title(estado + proxima.getDisciplina()
+                            + " — " + local.getNome()
+                            + " às " + proxima.getHoraInicio())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            marcadoresLocais.put(local.getId(), marcador);
+            return;
+        }
+    }
+
+    // A lista vem ordenada por horaInicio: usa a aula atual ou, se não existir, a próxima.
+    private Aula obterProximaAula() {
+        java.time.LocalTime agora = java.time.LocalTime.now();
+        for (Aula aula : aulasHoje) {
+            if (aula.estaADecorrer(agora) || !aula.getHoraInicio().isBefore(agora)) {
+                return aula;
+            }
+        }
+        return null;
     }
 
     // Requests location permissions if necessary.
@@ -492,11 +666,81 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         } else {
             pontoLocalizacao.setCenter(posicao);
         }
+
+        // O mesmo GPS que move o ponto azul atualiza a posição partilhada.
+        if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
+            localizacaoService.atualizarMinhaLocalizacao(
+                    this, localizacao.getLatitude(), localizacao.getLongitude()
+            );
+            ultimaLocalizacaoPartilhada = new Location(localizacao);
+            ultimoEnvioLocalizacao = System.currentTimeMillis();
+        }
+    }
+
+    // Evita enviar um PATCH por cada pequena variação do GPS.
+    private boolean deveEnviarLocalizacao(Location localizacao) {
+        return ultimaLocalizacaoPartilhada == null
+                || ultimaLocalizacaoPartilhada.distanceTo(localizacao) >= 3f
+                || System.currentTimeMillis() - ultimoEnvioLocalizacao >= 5000;
+    }
+
+    private void iniciarConsultaAmigos() {
+        handlerAmigos.removeCallbacks(atualizarAmigos);
+        handlerAmigos.post(atualizarAmigos);
+    }
+
+    private void pararConsultaAmigos() {
+        handlerAmigos.removeCallbacks(atualizarAmigos);
+    }
+
+    private void consultarLocalizacoesAmigos() {
+        if (!mapaAberto || mapa == null) {
+            return;
+        }
+
+        new AmigosService().listarAmigos(this, (amigos, erro) -> {
+            if (erro != null || amigos == null || !mapaAberto) {
+                return;
+            }
+
+            localizacaoService.obterLocalizacoesAmigos(this, amigos, (localizacoes, erroLocalizacao) -> {
+                if (erroLocalizacao != null || localizacoes == null || !mapaAberto || mapa == null) {
+                    return;
+                }
+
+                Set<String> amigosComPosicao = new HashSet<>();
+                for (LocalizacaoAmigo localizacao : localizacoes) {
+                    amigosComPosicao.add(localizacao.getUid());
+                    LatLng posicao = new LatLng(localizacao.getLatitude(), localizacao.getLongitude());
+                    Marker marcador = marcadoresAmigos.get(localizacao.getUid());
+
+                    if (marcador == null) {
+                        marcador = mapa.addMarker(new MarkerOptions()
+                                .position(posicao)
+                                .title(localizacao.getNome()));
+                        marcadoresAmigos.put(localizacao.getUid(), marcador);
+                    } else {
+                        marcador.setPosition(posicao);
+                    }
+                }
+
+                // Se já não houver localização no Firebase, remove o marcador do mapa.
+                for (String uid : new HashSet<>(marcadoresAmigos.keySet())) {
+                    if (!amigosComPosicao.contains(uid)) {
+                        Marker marcador = marcadoresAmigos.remove(uid);
+                        if (marcador != null) {
+                            marcador.remove();
+                        }
+                    }
+                }
+            });
+        });
     }
 
     @Override
     protected void onPause() {
         SessionManager.registarAtividade(this);
+        pararConsultaAmigos();
         super.onPause();
         pararAtualizacoesLocalizacao();
 
@@ -523,6 +767,10 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         if (detetorPresenca != null && temLocalizacaoPrecisa()) {
             detetorPresenca.iniciar();
         }
+
+        if (mapaAberto) {
+            iniciarConsultaAmigos();
+        }
     }
 
     private void pararAtualizacoesLocalizacao() {
@@ -537,5 +785,13 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         paginaInicio.setVisibility(mostrarMapa ? View.GONE : View.VISIBLE);
         paginaMapa.setVisibility(mostrarMapa ? View.VISIBLE : View.GONE);
         SessionManager.guardarPaginaMapa(this, mostrarMapa);
+        mapaAberto = mostrarMapa;
+
+        if (mostrarMapa) {
+            pedirPermissaoOuAtivarLocalizacao();
+            iniciarConsultaAmigos();
+        } else {
+            pararConsultaAmigos();
+        }
     }
 }

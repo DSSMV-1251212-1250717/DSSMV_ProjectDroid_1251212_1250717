@@ -19,6 +19,10 @@ public final class FirebaseConfig {
     "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
     + API_KEY;
 
+    // Endpoint que troca um refreshToken por um idToken novo.
+    public static final String TOKEN_REFRESH_URL =
+            "https://securetoken.googleapis.com/v1/token?key=" + API_KEY;
+
     public static final String FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID
             + "/databases/" + DATABASE_ID + "/documents";
 
