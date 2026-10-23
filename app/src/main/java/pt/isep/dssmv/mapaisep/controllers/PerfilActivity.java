@@ -1,12 +1,19 @@
 package pt.isep.dssmv.mapaisep.controllers;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
 
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.services.AuthService;
@@ -14,11 +21,19 @@ import pt.isep.dssmv.mapaisep.services.PerfilService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
 
 public class PerfilActivity extends AppCompatActivity {
+    private ImageView imagemPerfil;
+    private ActivityResultLauncher<String[]> seletorFoto;
+
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_perfil);
+        imagemPerfil = findViewById(R.id.imagemPerfil);
+        configurarSeletorFoto();
         ImageButton botaoMenu = findViewById(R.id.btnMenuPerfil);
         botaoMenu.setOnClickListener(this::abrirMenu);
+        MaterialButton botaoFoto = findViewById(R.id.btnAlterarFoto);
+        botaoFoto.setOnClickListener(v -> seletorFoto.launch(new String[]{"image/*"}));
+        carregarFotoGuardada();
         TextView numero = findViewById(R.id.textoNumeroPerfil);
         TextView turma = findViewById(R.id.textoTurmaPerfil);
         new PerfilService().obterPerfil(this, (numeroAluno, turmaAluno, erro) -> {
@@ -30,6 +45,22 @@ public class PerfilActivity extends AppCompatActivity {
             numero.setText(numeroAluno);
             turma.setText(turmaAluno);
         });
+    }
+
+    private void configurarSeletorFoto() {
+        seletorFoto = registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
+            if (uri == null) return;
+            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            imagemPerfil.setImageURI(uri);
+            SharedPreferences preferencias = getSharedPreferences("perfil", MODE_PRIVATE);
+            preferencias.edit().putString("foto_" + AuthService.getCurrentUid(), uri.toString()).apply();
+        });
+    }
+
+    private void carregarFotoGuardada() {
+        String uriTexto = getSharedPreferences("perfil", MODE_PRIVATE)
+                .getString("foto_" + AuthService.getCurrentUid(), null);
+        if (uriTexto != null) imagemPerfil.setImageURI(Uri.parse(uriTexto));
     }
 
     private void abrirMenu(android.view.View ancora) {
