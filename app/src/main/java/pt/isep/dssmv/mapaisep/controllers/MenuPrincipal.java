@@ -445,7 +445,7 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     public void onMapReady(GoogleMap googleMap) {
         mapa = googleMap;
 
-        mapa.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mapa.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         mapa.setBuildingsEnabled(true);
         mapa.setLatLngBoundsForCameraTarget(CAMPUS_ISEP);
         mapa.setMinZoomPreference(16f);
