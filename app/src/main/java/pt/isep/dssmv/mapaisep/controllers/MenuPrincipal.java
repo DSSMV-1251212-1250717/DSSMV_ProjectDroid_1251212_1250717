@@ -7,9 +7,12 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.Settings;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.ImageButton;
@@ -38,6 +41,7 @@ import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.model.Aula;
 import pt.isep.dssmv.mapaisep.services.AuthService;
 import pt.isep.dssmv.mapaisep.services.BibliotecaService;
+import pt.isep.dssmv.mapaisep.services.DetetorPresenca;
 import pt.isep.dssmv.mapaisep.services.HorarioService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
 
@@ -92,6 +96,12 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     private Circle pontoLocalizacao;
     private boolean atualizacoesLocalizacaoAtivas;
 
+    // Deteta, pelo Wi-Fi, se o aluno está na biblioteca e atualiza a presença no Firestore.
+    private DetetorPresenca detetorPresenca;
+
+    // true quando o pedido de permissão veio do botão da biblioteca (e não do mapa).
+    private boolean pedidoDaBiblioteca;
+
     @Override
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +138,14 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
         carregarLotacaoBiblioteca();
 
+        // No fim de cada ciclo do detetor, volta a pedir a lotação (o número no ecrã acompanha quem entra e sai).
+        detetorPresenca = new DetetorPresenca(this, new Runnable() {
+            @Override
+            public void run() {
+                carregarLotacaoBiblioteca();
+            }
+        });
+
         // Register the location permission callback.
         permissaoLocalizacao = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), resultados -> {
             if (temPermissaoLocalizacao()) {
@@ -135,6 +153,26 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             } else {
                 Toast.makeText(this, R.string.location_permission_required, Toast.LENGTH_LONG).show();
             }
+
+            if (temLocalizacaoPrecisa()) {
+                // Já pode ver as redes Wi-Fi: liga o detetor e o cartão passa a mostrar o número.
+                detetorPresenca.iniciar();
+                carregarLotacaoBiblioteca();
+            } else if (pedidoDaBiblioteca
+                    && !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // O Android já não mostra a janela ("não perguntar novamente"): abre as definições da app.
+                Intent definicoes = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", getPackageName(), null));
+                startActivity(definicoes);
+            }
+            pedidoDaBiblioteca = false;
+        });
+
+        // Botão do cartão da biblioteca: pede a localização precisa.
+        findViewById(R.id.btnPermissaoBiblioteca).setOnClickListener(v -> {
+            pedidoDaBiblioteca = true;
+            permissaoLocalizacao.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION });
         });
 
         // Get references to the home and map pages.
@@ -256,6 +294,20 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void carregarLotacaoBiblioteca() {
+        // Caixa de texto da biblioteca (menu_principal.xml).
+        TextView textoBiblioteca = findViewById(R.id.textoBiblioteca);
+        Button btnPermissao = findViewById(R.id.btnPermissaoBiblioteca);
+
+        // Sem localização precisa: mostra a mensagem e o botão em vez da lotação.
+        if (!temLocalizacaoPrecisa()) {
+            textoBiblioteca.setText(R.string.biblioteca_sem_permissao);
+            btnPermissao.setVisibility(View.VISIBLE);
+            return;
+        }
+        btnPermissao.setVisibility(View.GONE);
+
+        // Mensagem mostrada enquanto o pedido HTTP decorre.
+        textoBiblioteca.setText(R.string.biblioteca_loading);
 
         BibliotecaService bibliotecaService = new BibliotecaService();
         // Callback: diz o que fazer quando o BibliotecaService tiver a lotação.
@@ -264,6 +316,18 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             //ainda temos de chamar um metodo para realmente carregar
             @Override
             public void onResult(Integer lotacaoEstimativa, String erro) {
+                // Se o ecrã já foi fechado, não há onde mostrar o resultado.
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+
+                if (erro != null) {
+                    textoBiblioteca.setText(R.string.biblioteca_indisponivel);
+                    return;
+                }
+
+                // Substitui o %1$d do texto pelo número recebido.
+                textoBiblioteca.setText(getString(R.string.biblioteca_lotacao, lotacaoEstimativa));
             }
         };
         bibliotecaService.obterLotacao(callback);
@@ -330,6 +394,12 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     }
 
     // Checks whether location permissions were granted.
+    // Só a localização precisa (FINE) deixa ver as redes Wi-Fi.
+    private boolean temLocalizacaoPrecisa() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
     private boolean temPermissaoLocalizacao() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -429,6 +499,11 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         SessionManager.registarAtividade(this);
         super.onPause();
         pararAtualizacoesLocalizacao();
+
+        // App em fundo: pára os scans de Wi-Fi.
+        if (detetorPresenca != null) {
+            detetorPresenca.parar();
+        }
     }
 
     @Override
@@ -443,6 +518,11 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
         SessionManager.registarAtividade(this);
         ativarLocalizacao();
+
+        // App aberta: começa os scans de Wi-Fi (ver as redes precisa da localização precisa).
+        if (detetorPresenca != null && temLocalizacaoPrecisa()) {
+            detetorPresenca.iniciar();
+        }
     }
 
     private void pararAtualizacoesLocalizacao() {

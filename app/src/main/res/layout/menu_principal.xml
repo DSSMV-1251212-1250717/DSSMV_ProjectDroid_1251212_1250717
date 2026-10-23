@@ -38,6 +38,26 @@
                         android:layout_marginTop="6dp"
                         android:accessibilityLiveRegion="polite" />
                 </LinearLayout>
+                <!-- Lotação da biblioteca: preenchida pelo carregarLotacaoBiblioteca(). -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="16dp" android:padding="20dp" android:background="@drawable/bg_campus_card">
+                    <TextView style="@style/CampusLabel" android:text="@string/biblioteca_titulo" android:textSize="18sp" />
+                    <TextView
+                        android:id="@+id/textoBiblioteca"
+                        style="@style/CampusBody"
+                        android:text="@string/biblioteca_loading"
+                        android:textColor="@color/campus_text"
+                        android:layout_marginTop="6dp"
+                        android:accessibilityLiveRegion="polite" />
+                    <!-- Só aparece quando falta a localização precisa. -->
+                    <Button
+                        android:id="@+id/btnPermissaoBiblioteca"
+                        style="?attr/borderlessButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:text="@string/biblioteca_ativar_localizacao"
+                        android:visibility="gone" />
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
         <FrameLayout

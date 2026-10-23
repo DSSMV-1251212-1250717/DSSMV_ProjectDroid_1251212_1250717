@@ -54,4 +54,10 @@
     <string name="campus_map_body">Estamos a preparar este espaço para explorares os edifícios e encontrares a tua sala.</string>
     <string name="open_account_menu">Abrir menu da conta</string>
     <string name="logout">Terminar sessão</string>
+    <string name="biblioteca_titulo">Biblioteca</string>
+    <string name="biblioteca_loading">A carregar a lotação…</string>
+    <string name="biblioteca_lotacao">%1$d pessoas neste momento</string>
+    <string name="biblioteca_indisponivel">Lotação indisponível.</string>
+    <string name="biblioteca_sem_permissao">Para ver a lotação da biblioteca, ativa a localização precisa.</string>
+    <string name="biblioteca_ativar_localizacao">Ativar localização</string>
 </resources>

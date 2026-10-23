@@ -21,7 +21,17 @@ public class HttpClient {
         try {
             URL url = new URL(endereco);
             connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(metodo);
+
+            // O HttpURLConnection não aceita PATCH (lança ProtocolException).
+            // Envia-se um POST com o cabeçalho X-HTTP-Method-Override: PATCH,
+            // e o servidor da Google trata o pedido como um PATCH.
+            if (metodo.equals("PATCH")) {
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("X-HTTP-Method-Override", "PATCH");
+            } else {
+                connection.setRequestMethod(metodo);
+            }
+
             connection.setConnectTimeout(TIMEOUT_MS);
             connection.setReadTimeout(TIMEOUT_MS);
             connection.setRequestProperty("Accept", "application/json");
