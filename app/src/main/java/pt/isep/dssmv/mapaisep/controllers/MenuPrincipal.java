@@ -4,6 +4,11 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,6 +23,8 @@ import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+
+import android.util.Base64;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +42,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
@@ -56,6 +64,7 @@ import pt.isep.dssmv.mapaisep.services.HorarioService;
 import pt.isep.dssmv.mapaisep.services.LocalizacaoService;
 import pt.isep.dssmv.mapaisep.services.LocaisService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
+import pt.isep.dssmv.mapaisep.services.PerfilService;
 
 public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallback {
     // ISEP campus location.
@@ -111,7 +120,11 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     private final LocalizacaoService localizacaoService = new LocalizacaoService();
     private final LocaisService locaisService = new LocaisService();
     private final Map<String, Marker> marcadoresAmigos = new HashMap<>();
+    private final Map<String, BitmapDescriptor> iconesAmigos = new HashMap<>();
     private final Map<String, Marker> marcadoresLocais = new HashMap<>();
+    private Marker marcadorMinhaLocalizacao;
+    private Location ultimaPosicaoMinha;
+    private BitmapDescriptor iconeMinhaFoto;
     private Marker marcadorBiblioteca;
     private List<LocalMapa> locaisCampus = new ArrayList<>();
     private List<Aula> aulasHoje = new ArrayList<>();
@@ -413,6 +426,7 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         adicionarMascaraExterior();
 
         desenharBiblioteca();
+        carregarIconeMinhaFoto();
         carregarLocais();
 
         mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(41.17827, -8.60727), 19f));
@@ -539,10 +553,9 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     @SuppressWarnings("MissingPermission")
     private void ativarLocalizacao() {
         if (mapa != null && temPermissaoLocalizacao()) {
-            mapa.setMyLocationEnabled(true);
-
-            mapa.getUiSettings()
-                    .setMyLocationButtonEnabled(true);
+            // A posição é desenhada com a foto do perfil, não com o ponto azul nativo.
+            mapa.setMyLocationEnabled(false);
+            mapa.getUiSettings().setMyLocationButtonEnabled(false);
 
             iniciarAtualizacoesLocalizacao();
         }
@@ -604,14 +617,60 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             return;
         }
 
-        // O marcador nativo do Google Maps atualiza-se automaticamente.
-        // Usamos esta posição apenas para a partilhar com os amigos.
+        ultimaPosicaoMinha = new Location(localizacao);
+        desenharMinhaLocalizacao();
+
+        // A mesma posição que move a foto é partilhada com os amigos.
         if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
             localizacaoService.atualizarMinhaLocalizacao(
                     this, localizacao.getLatitude(), localizacao.getLongitude()
             );
             ultimaLocalizacaoPartilhada = new Location(localizacao);
             ultimoEnvioLocalizacao = System.currentTimeMillis();
+        }
+    }
+
+    private void carregarIconeMinhaFoto() {
+        new PerfilService().obterFoto(this, AuthService.getCurrentUid(), fotoBase64 -> {
+            iconeMinhaFoto = criarIconeFoto(fotoBase64, Color.rgb(25, 118, 210));
+            desenharMinhaLocalizacao();
+        });
+    }
+
+    private void desenharMinhaLocalizacao() {
+        if (mapa == null || ultimaPosicaoMinha == null || iconeMinhaFoto == null) return;
+        LatLng posicao = new LatLng(ultimaPosicaoMinha.getLatitude(), ultimaPosicaoMinha.getLongitude());
+        if (marcadorMinhaLocalizacao == null) {
+            marcadorMinhaLocalizacao = mapa.addMarker(new MarkerOptions()
+                    .position(posicao).title("A tua localização").icon(iconeMinhaFoto));
+        } else {
+            marcadorMinhaLocalizacao.setPosition(posicao);
+            marcadorMinhaLocalizacao.setIcon(iconeMinhaFoto);
+        }
+    }
+
+    // Converte a foto Base64 num ícone redondo para o Google Maps.
+    private BitmapDescriptor criarIconeFoto(String fotoBase64, int corContorno) {
+        if (fotoBase64 == null) return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
+        try {
+            byte[] bytes = Base64.decode(fotoBase64, Base64.DEFAULT);
+            Bitmap original = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (original == null) return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
+            Bitmap imagem = Bitmap.createScaledBitmap(original, 96, 96, true);
+            Bitmap resultado = Bitmap.createBitmap(104, 104, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(resultado);
+            Paint pintura = new Paint(Paint.ANTI_ALIAS_FLAG);
+            pintura.setColor(corContorno);
+            canvas.drawCircle(52, 52, 52, pintura);
+            canvas.save();
+            android.graphics.Path circulo = new android.graphics.Path();
+            circulo.addCircle(52, 52, 46, android.graphics.Path.Direction.CW);
+            canvas.clipPath(circulo);
+            canvas.drawBitmap(imagem, null, new RectF(4, 4, 100, 100), pintura);
+            canvas.restore();
+            return BitmapDescriptorFactory.fromBitmap(resultado);
+        } catch (IllegalArgumentException e) {
+            return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
         }
     }
 
@@ -657,6 +716,13 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                                 .position(posicao)
                                 .title(localizacao.getNome()));
                         marcadoresAmigos.put(localizacao.getUid(), marcador);
+                        Marker marcadorFinal = marcador;
+                        new PerfilService().obterFoto(this, localizacao.getUid(), fotoBase64 -> {
+                            if (!mapaAberto || marcadorFinal != marcadoresAmigos.get(localizacao.getUid())) return;
+                            BitmapDescriptor icone = criarIconeFoto(fotoBase64, Color.RED);
+                            iconesAmigos.put(localizacao.getUid(), icone);
+                            marcadorFinal.setIcon(icone);
+                        });
                     } else {
                         marcador.setPosition(posicao);
                     }
