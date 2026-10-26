@@ -415,7 +415,6 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
 
         adicionarMascaraExterior();
 
-        mapa.addMarker(new MarkerOptions().position(ISEP).title("ISEP"));
         desenharBiblioteca();
         carregarLocais();
 
