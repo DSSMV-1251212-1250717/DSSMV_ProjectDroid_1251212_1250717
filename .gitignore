@@ -17,3 +17,6 @@ captures/
 # Operating system metadata
 .DS_Store
 Thumbs.db
+
+# Chave do Google Maps (local, não vai para o GitHub)
+secrets.properties
