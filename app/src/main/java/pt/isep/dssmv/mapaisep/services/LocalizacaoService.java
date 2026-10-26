@@ -13,7 +13,7 @@ import java.util.List;
 
 import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
 import pt.isep.dssmv.mapaisep.dto.LocalizacaoDTO;
-import pt.isep.dssmv.mapaisep.mappers.LocalizacaoMapper;
+import pt.isep.dssmv.mapaisep.mappers.LocalizacaoAmigoMapper;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 import pt.isep.dssmv.mapaisep.model.LocalizacaoAmigo;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
@@ -22,7 +22,7 @@ import pt.isep.dssmv.mapaisep.network.HttpResponse;
 /** Comunica com a coleção Firestore localizacoes através de pedidos HTTP manuais. */
 public class LocalizacaoService {
     private final HttpClient httpClient = new HttpClient();
-    private final LocalizacaoMapper mapper = new LocalizacaoMapper();
+    private final LocalizacaoAmigoMapper mapper = new LocalizacaoAmigoMapper();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface LocalizacoesCallback {

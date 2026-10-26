@@ -8,7 +8,7 @@ import pt.isep.dssmv.mapaisep.model.Amigo;
 import pt.isep.dssmv.mapaisep.model.LocalizacaoAmigo;
 
 /** Converte JSON Firestore em DTO e DTO em Model. */
-public final class LocalizacaoMapper {
+public final class LocalizacaoAmigoMapper {
     public LocalizacaoDTO desserializar(JSONObject documento, Amigo amigo) throws JSONException {
         JSONObject campos = documento.getJSONObject("fields");
         return new LocalizacaoDTO(

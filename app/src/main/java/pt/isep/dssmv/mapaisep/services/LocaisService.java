@@ -14,7 +14,7 @@ import java.util.List;
 
 import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
 import pt.isep.dssmv.mapaisep.dto.LocalMapaDTO;
-import pt.isep.dssmv.mapaisep.mappers.LocalMapaMapper;
+import pt.isep.dssmv.mapaisep.mappers.LocalCampusMapper;
 import pt.isep.dssmv.mapaisep.model.LocalMapa;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
 import pt.isep.dssmv.mapaisep.network.HttpResponse;
@@ -22,7 +22,7 @@ import pt.isep.dssmv.mapaisep.network.HttpResponse;
 /** Lê os locais fixos do campus através de um pedido HTTP GET. */
 public class    LocaisService {
     private final HttpClient httpClient = new HttpClient();
-    private final LocalMapaMapper mapper = new LocalMapaMapper();
+    private final LocalCampusMapper mapper = new LocalCampusMapper();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface LocaisCallback {

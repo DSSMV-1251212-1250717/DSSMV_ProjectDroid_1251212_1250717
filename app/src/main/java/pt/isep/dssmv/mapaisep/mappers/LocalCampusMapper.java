@@ -7,7 +7,7 @@ import pt.isep.dssmv.mapaisep.dto.LocalMapaDTO;
 import pt.isep.dssmv.mapaisep.model.LocalMapa;
 
 /** Converte cada documento Firestore de locais para dados usados pelo mapa. */
-public final class LocalMapaMapper {
+public final class LocalCampusMapper {
     public LocalMapaDTO desserializar(JSONObject documento) throws JSONException {
         JSONObject campos = documento.getJSONObject("fields");
         String caminho = documento.getString("name");

@@ -267,39 +267,22 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
         });
     }
 
-    // Mantém o carregamento do horário separado da configuração do mapa e dos menus.
+    // Pede o horário ao HorarioService e mostra-o na página Início.
     private void carregarHorario() {
-        // Get the TextView where the timetable will be displayed.
         TextView textoAulas = findViewById(R.id.textoAulas);
 
-        // Show a message while the HTTP request is running.
+        // Mensagem mostrada enquanto o pedido HTTP decorre.
         textoAulas.setText(R.string.horario_loading);
 
-        // HorarioService is responsible for retrieving the timetable
-        // from Firestore. MenuPrincipal is responsible for displaying it.
+        // O serviço vai buscar os dados; a Activity só os mostra.
         HorarioService horarioService = new HorarioService();
 
-        // CALLBACK - STEP 1: CREATE THE CALLBACK
-        //
-        // MenuPrincipal creates an object implementing HorarioCallback.
-        // This object contains the onResult() method defined below.
-        //
-        // The method specifies what MenuPrincipal should do when
-        // HorarioService finishes retrieving the timetable.
-        //
-        // Creating this object does NOT execute onResult().
+        // Callback: diz o que fazer quando o serviço tiver o horário.
+        // Criar este objeto não executa o onResult().
         HorarioService.HorarioCallback callback = new HorarioService.HorarioCallback() {
-            // CALLBACK - STEP 3: RECEIVE THE RESULT
-            //
-            // HorarioService eventually calls:
-            // callback.onResult(resultado, null);
-            //
-            // Java executes THIS implementation of onResult().
-            // The result list is received as an argument.
-            //
-            // HorarioService uses a Handler to execute this
-            // method on the main thread, because this code
-            // updates the application's interface.
+
+            // Chamado pelo serviço na main thread (através do Handler),
+            // por isso pode alterar a interface.
             @Override
             public void onResult(List<Aula> resultado, String erro) {
                 // Ignore results if the Activity was closed.
@@ -338,16 +321,13 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
                 StringBuilder horario = new StringBuilder();
 
                 for (int i = 0; i < resultado.size(); i++) {
-                    // Get an Aula Model object from the list.
                     Aula item = resultado.get(i);
 
                     if (horario.length() > 0) {
                         horario.append("\n\n");
                     }
 
-                    // Displays starting time, ending time,
-                    // subject name and room code.
-                    // A apresentação pertence à Activity, não ao toString() do modelo.
+                    // Hora de início, hora de fim, disciplina e sala.
                     horario.append(getString(R.string.horario_lesson_details, item.getHoraInicio().toString(), item.getHoraFim().toString(),
                             item.getDisciplina(), item.getSala().getCodigo()));
                 }
@@ -357,28 +337,8 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             }
         };
 
-        // CALLBACK - STEP 2: PASS THE CALLBACK TO THE SERVICE
-        //
-        // MenuPrincipal calls obterAulasHoje() and passes the
-        // callback object created above.
-        //
-        // HorarioService receives this object as a parameter
-        // and starts a secondary thread to contact Firestore.
-        //
-        // The service uses the device's current date to determine
-        // the weekday and retrieve today's lessons.
-        //
-        // obterAulasHoje() returns without waiting for Firestore.
-        // The main thread remains available to manage the UI.
-        //
-        // When the HTTP requests finish, HorarioService uses a
-        // Handler to schedule callback.onResult() on the main thread.
-        //
-        // That executes the method implemented above and passes
-        // the retrieved Aula objects back to MenuPrincipal.
-        //
-        // This is the connection between MenuPrincipal and
-        // HorarioService. No additional thread is needed here.
+        // Passa o callback ao serviço. O serviço faz o pedido numa thread
+        // secundária e este método retorna logo, sem esperar pelo Firestore.
         horarioService.obterAulasHoje(this, callback);
     }
 
