@@ -1,9 +1,13 @@
 package pt.isep.dssmv.mapaisep.controllers;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -19,11 +23,13 @@ import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 import pt.isep.dssmv.mapaisep.services.AmigosService;
 import pt.isep.dssmv.mapaisep.services.AuthService;
+import pt.isep.dssmv.mapaisep.services.PerfilService;
 import pt.isep.dssmv.mapaisep.services.SessionManager;
 
 public class AmigosActivity extends AppCompatActivity {
 
     private AmigosService amigosService;
+    private final PerfilService perfilService = new PerfilService();
     private EditText inputNumero;
     private MaterialButton botaoAdicionar;
     private TextView textoEstado;
@@ -147,6 +153,28 @@ public class AmigosActivity extends AppCompatActivity {
             linha.setOrientation(LinearLayout.HORIZONTAL);
             linha.setGravity(android.view.Gravity.CENTER_VERTICAL);
             cartao.addView(linha);
+
+            // Foto do amigo, à esquerda (é a primeira coisa posta na linha).
+            // Começa com o ícone por defeito; a foto chega depois do pedido ao Firestore.
+            ImageView foto = new ImageView(this);
+            foto.setImageResource(R.drawable.ic_campus_pin);
+            foto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            LinearLayout.LayoutParams fotoParams = new LinearLayout.LayoutParams(140, 140);
+            fotoParams.rightMargin = 24;
+            linha.addView(foto, fotoParams);
+
+            // Pede o fotoBase64 deste amigo; o callback corre na main thread.
+            perfilService.obterFoto(this, amigo.getUid(), fotoBase64 -> {
+                if (fotoBase64 == null || isFinishing() || isDestroyed()) {
+                    return;
+                }
+                // Texto Base64 -> bytes -> imagem.
+                byte[] bytes = Base64.decode(fotoBase64, Base64.DEFAULT);
+                Bitmap imagem = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                if (imagem != null) {
+                    foto.setImageBitmap(imagem);
+                }
+            });
 
             LinearLayout texto = new LinearLayout(this);
             texto.setOrientation(LinearLayout.VERTICAL);

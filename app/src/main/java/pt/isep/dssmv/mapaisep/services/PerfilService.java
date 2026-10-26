@@ -122,6 +122,44 @@ public class PerfilService {
         });
     }
 
+    // fotoBase64 = null se o aluno não tiver foto ou se o pedido falhar.
+    public interface FotoAlunoCallback {
+        void onResult(String fotoBase64);
+    }
+
+    // Vai buscar a foto de qualquer aluno (por exemplo, um amigo): GET a alunos/{uid}.
+    public void obterFoto(Context context, String uid, FotoAlunoCallback callback) {
+        new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            @Override
+            public void onSuccess(String idToken) {
+                new Thread(() -> {
+                    String foto = null;
+                    try {
+                        HttpResponse resposta = httpClient.enviarPedido(
+                                FirebaseConfig.FIRESTORE_URL + "/alunos/" + uid, "GET", idToken, null);
+                        if (resposta.isSuccessful()) {
+                            JSONObject campos = new JSONObject(resposta.getBody()).getJSONObject("fields");
+                            if (campos.has("fotoBase64")) {
+                                foto = campos.getJSONObject("fotoBase64").getString("stringValue");
+                            }
+                        }
+                    } catch (IOException | JSONException e) {
+                        // Sem foto: o cartão fica com o ícone por defeito.
+                    }
+
+                    // A lambda só aceita variáveis que não mudam depois; por isso copia-se.
+                    String resultado = foto;
+                    mainHandler.post(() -> callback.onResult(resultado));
+                }).start();
+            }
+
+            @Override
+            public void onError(String erro) {
+                callback.onResult(null);
+            }
+        });
+    }
+
     private String lerValor(JSONObject valor) {
         if (valor.has("stringValue")) return valor.optString("stringValue");
         return valor.optString("integerValue");
