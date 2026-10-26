@@ -1,10 +1,12 @@
 package pt.isep.dssmv.mapaisep.controllers;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -17,6 +19,7 @@ import java.util.Set;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 import pt.isep.dssmv.mapaisep.services.AmigosService;
 import pt.isep.dssmv.mapaisep.services.LocalizacaoService;
+import pt.isep.dssmv.mapaisep.services.PerfilService;
 
 // Mostra a posição dos amigos no mapa e atualiza-a de 5 em 5 segundos.
 // O MenuPrincipal cria-a, entrega-lhe o mapa e chama iniciar() / parar().
@@ -96,6 +99,17 @@ public class AmigosNoMapa {
                                 .position(posicao)
                                 .title(amigo.getNome()));
                         marcadores.put(amigo.getUid(), marcador);
+
+                        // Troca o marcador pela foto do amigo (contorno vermelho), quando chegar.
+                        Marker marcadorFinal = marcador;
+                        String uid = amigo.getUid();
+                        new PerfilService().obterFoto(context, uid, fotoBase64 -> {
+                            if (!ativo || marcadorFinal != marcadores.get(uid)) {
+                                return;
+                            }
+                            BitmapDescriptor icone = IconeFoto.criar(fotoBase64, Color.RED);
+                            marcadorFinal.setIcon(icone);
+                        });
                     } else {
                         marcador.setPosition(posicao);
                     }

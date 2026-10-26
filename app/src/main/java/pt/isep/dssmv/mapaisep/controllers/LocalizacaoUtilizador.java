@@ -12,13 +12,16 @@ import android.os.Looper;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
+import pt.isep.dssmv.mapaisep.services.AuthService;
 import pt.isep.dssmv.mapaisep.services.LocalizacaoService;
+import pt.isep.dssmv.mapaisep.services.PerfilService;
 
-// A localização do utilizador: o ponto azul no mapa (GPS) e o envio da posição para o Firestore.
+// A localização do utilizador: a tua foto no mapa, na posição do GPS, e o envio da posição para o Firestore.
 // O MenuPrincipal cria-a no onCreate, entrega-lhe o mapa e chama ativar() / parar().
 public class LocalizacaoUtilizador {
     private final Context context;
@@ -27,7 +30,10 @@ public class LocalizacaoUtilizador {
     private final LocationListener ouvinteLocalizacao;
 
     private GoogleMap mapa;
-    private Circle pontoLocalizacao;
+    // A tua posição é desenhada com a tua foto de perfil (num círculo azul), e não com o ponto azul.
+    private Marker marcadorMinhaLocalizacao;
+    private Location ultimaPosicaoMinha;
+    private BitmapDescriptor iconeMinhaFoto;
     private boolean atualizacoesLocalizacaoAtivas;
 
     // Só se partilha a posição com os amigos enquanto o mapa está aberto.
@@ -51,6 +57,7 @@ public class LocalizacaoUtilizador {
     // Chamado no onMapReady do MenuPrincipal, quando o Google Maps está pronto.
     public void definirMapa(GoogleMap mapa) {
         this.mapa = mapa;
+        carregarIconeMinhaFoto();
     }
 
     // O MenuPrincipal avisa quando troca entre Início e Mapa.
@@ -74,10 +81,9 @@ public class LocalizacaoUtilizador {
     @SuppressWarnings("MissingPermission")
     public void ativar() {
         if (mapa != null && temPermissaoLocalizacao(context)) {
-            mapa.setMyLocationEnabled(true);
-
-            mapa.getUiSettings()
-                    .setMyLocationButtonEnabled(true);
+            // A posição é desenhada com a foto do perfil, não com o ponto azul nativo.
+            mapa.setMyLocationEnabled(false);
+            mapa.getUiSettings().setMyLocationButtonEnabled(false);
 
             iniciarAtualizacoesLocalizacao();
         }
@@ -148,32 +154,39 @@ public class LocalizacaoUtilizador {
             return;
         }
 
-        LatLng posicao = new LatLng(
-                localizacao.getLatitude(),
-                localizacao.getLongitude()
-        );
+        ultimaPosicaoMinha = new Location(localizacao);
+        desenharMinhaLocalizacao();
 
-        if (pontoLocalizacao == null) {
-            pontoLocalizacao = mapa.addCircle(
-                    new CircleOptions()
-                            .center(posicao)
-                            .radius(3d)
-                            .strokeColor(Color.rgb(25, 118, 210))
-                            .strokeWidth(3f)
-                            .fillColor(Color.argb(110, 33, 150, 243))
-                            .zIndex(10f)
-            );
-        } else {
-            pontoLocalizacao.setCenter(posicao);
-        }
-
-        // O mesmo GPS que move o ponto azul atualiza a posição partilhada.
+        // A mesma posição que move a foto é partilhada com os amigos.
         if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
             localizacaoService.atualizarMinhaLocalizacao(
                     context, localizacao.getLatitude(), localizacao.getLongitude()
             );
             ultimaLocalizacaoPartilhada = new Location(localizacao);
             ultimoEnvioLocalizacao = System.currentTimeMillis();
+        }
+    }
+
+    // Pede a tua foto ao Firestore e transforma-a no ícone do marcador (contorno azul).
+    private void carregarIconeMinhaFoto() {
+        new PerfilService().obterFoto(context, AuthService.getCurrentUid(), fotoBase64 -> {
+            iconeMinhaFoto = IconeFoto.criar(fotoBase64, Color.rgb(25, 118, 210));
+            desenharMinhaLocalizacao();
+        });
+    }
+
+    // Cria o marcador com a tua foto ou move-o para a última posição conhecida.
+    private void desenharMinhaLocalizacao() {
+        if (mapa == null || ultimaPosicaoMinha == null || iconeMinhaFoto == null) {
+            return;
+        }
+        LatLng posicao = new LatLng(ultimaPosicaoMinha.getLatitude(), ultimaPosicaoMinha.getLongitude());
+        if (marcadorMinhaLocalizacao == null) {
+            marcadorMinhaLocalizacao = mapa.addMarker(new MarkerOptions()
+                    .position(posicao).title("A tua localização").icon(iconeMinhaFoto));
+        } else {
+            marcadorMinhaLocalizacao.setPosition(posicao);
+            marcadorMinhaLocalizacao.setIcon(iconeMinhaFoto);
         }
     }
 
