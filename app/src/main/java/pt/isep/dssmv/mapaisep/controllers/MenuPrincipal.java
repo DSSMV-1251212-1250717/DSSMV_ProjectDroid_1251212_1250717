@@ -34,8 +34,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -109,7 +107,6 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
     private ActivityResultLauncher<String[]> permissaoLocalizacao;
     private LocationManager gestorLocalizacao;
     private LocationListener ouvinteLocalizacao;
-    private Circle pontoLocalizacao;
     private boolean atualizacoesLocalizacaoAtivas;
     private final LocalizacaoService localizacaoService = new LocalizacaoService();
     private final LocaisService locaisService = new LocaisService();
@@ -607,26 +604,8 @@ public class MenuPrincipal extends AppCompatActivity implements OnMapReadyCallba
             return;
         }
 
-        LatLng posicao = new LatLng(
-                localizacao.getLatitude(),
-                localizacao.getLongitude()
-        );
-
-        if (pontoLocalizacao == null) {
-            pontoLocalizacao = mapa.addCircle(
-                    new CircleOptions()
-                            .center(posicao)
-                            .radius(3d)
-                            .strokeColor(Color.rgb(25, 118, 210))
-                            .strokeWidth(3f)
-                            .fillColor(Color.argb(110, 33, 150, 243))
-                            .zIndex(10f)
-            );
-        } else {
-            pontoLocalizacao.setCenter(posicao);
-        }
-
-        // O mesmo GPS que move o ponto azul atualiza a posição partilhada.
+        // O marcador nativo do Google Maps atualiza-se automaticamente.
+        // Usamos esta posição apenas para a partilhar com os amigos.
         if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
             localizacaoService.atualizarMinhaLocalizacao(
                     this, localizacao.getLatitude(), localizacao.getLongitude()
