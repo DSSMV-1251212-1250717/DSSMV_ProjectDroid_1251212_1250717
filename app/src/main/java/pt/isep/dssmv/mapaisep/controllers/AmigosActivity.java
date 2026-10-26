@@ -121,11 +121,17 @@ public class AmigosActivity extends AppCompatActivity {
         });
     }
 
+    // XML is for what always exists. Java is for what depends on the data.
+    // The number of cards depends on how many friends you have, which is only known
+    // when Firestore responds. The XML doesn't know how many cards to create.
+    // So the XML only has the empty container (listaAmigos), and the Java code
+    // creates one card per friend inside it.
     private void mostrarAmigos(List<Amigo> amigos) {
         for (Amigo amigo : amigos) {
+            // Cartão do amigo: em cima a linha com nome, número e Remover;
+            // em baixo o botão Ver horário. Por isso é VERTICAL.
             LinearLayout cartao = new LinearLayout(this);
-            cartao.setOrientation(LinearLayout.HORIZONTAL);
-            cartao.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            cartao.setOrientation(LinearLayout.VERTICAL);
             cartao.setPadding(20, 20, 20, 20);
             cartao.setBackgroundResource(R.drawable.bg_campus_card);
 
@@ -136,9 +142,15 @@ public class AmigosActivity extends AppCompatActivity {
             cartaoParams.bottomMargin = 12;
             listaAmigos.addView(cartao, cartaoParams);
 
+            // Linha de cima (como o cartão era antes): texto à esquerda, Remover à direita.
+            LinearLayout linha = new LinearLayout(this);
+            linha.setOrientation(LinearLayout.HORIZONTAL);
+            linha.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            cartao.addView(linha);
+
             LinearLayout texto = new LinearLayout(this);
             texto.setOrientation(LinearLayout.VERTICAL);
-            cartao.addView(texto, new LinearLayout.LayoutParams(
+            linha.addView(texto, new LinearLayout.LayoutParams(
                     0,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     1f
@@ -160,7 +172,18 @@ public class AmigosActivity extends AppCompatActivity {
             remover.setText(R.string.friends_remove);
             remover.setTextColor(getColor(R.color.campus_button_red));
             remover.setOnClickListener(v -> removerAmigo(amigo));
-            cartao.addView(remover);
+            linha.addView(remover);
+
+            // Botão Ver horário, por baixo da linha, a ocupar a largura do cartão.
+            // O clique abre o horário deste amigo.
+            MaterialButton verHorario = new MaterialButton(this);
+            verHorario.setText(R.string.friends_view_schedule);
+            verHorario.setAllCaps(false);
+            verHorario.setOnClickListener(v -> abrirHorarioAmigo(amigo));
+            cartao.addView(verHorario, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
         }
     }
 
@@ -192,6 +215,16 @@ public class AmigosActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.friends_removed, Toast.LENGTH_SHORT).show();
             carregarAmigos();
         });
+    }
+
+    // Abre o ecrã do horário deste amigo.
+    // O uid vai no Intent (putExtra) porque a Activity nova não vê as variáveis desta;
+    // lá é lido com getIntent().getStringExtra("uidAmigo").
+    private void abrirHorarioAmigo(Amigo amigo) {
+        Intent intent = new Intent(this, HorarioAmigoActivity.class);
+        intent.putExtra("uidAmigo", amigo.getUid());
+        intent.putExtra("nomeAmigo", amigo.getNome());
+        startActivity(intent);
     }
 
     private void mostrarErroAdicionar(String erro) {

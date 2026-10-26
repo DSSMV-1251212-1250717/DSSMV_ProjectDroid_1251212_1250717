@@ -61,6 +61,8 @@
     <string name="profile_error">Não foi possível carregar o perfil.</string>
     <string name="profile_change_photo">Alterar foto</string>
     <string name="profile_photo_description">Fotografia de perfil</string>
+    <string name="profile_photo_read_error">Não foi possível ler a imagem.</string>
+    <string name="profile_photo_save_error">Não foi possível guardar a foto.</string>
     <string name="friends_title">Os teus amigos</string>
     <string name="friends_add_title">Adicionar amigo</string>
     <string name="friends_number_hint">Número de estudante do amigo</string>
@@ -68,6 +70,10 @@
     <string name="friends_loading">A carregar amigos…</string>
     <string name="friends_empty">Ainda não adicionaste amigos.</string>
     <string name="friends_remove">Remover</string>
+    <string name="friends_view_schedule">Ver horário</string>
+    <string name="friend_schedule_label">AULAS DE HOJE</string>
+    <string name="back">Voltar</string>
+    <string name="friend_schedule_empty">Este amigo não tem aulas hoje.</string>
     <string name="friends_added">Amigo adicionado.</string>
     <string name="friends_removed">Amigo removido.</string>
     <string name="friends_invalid_number">O número deve ter exatamente 7 dígitos.</string>

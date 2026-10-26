@@ -63,6 +63,27 @@ public class HorarioService {
         );
     }
 
+    // Igual ao de cima, mas para outro aluno (por exemplo, um amigo):
+    // em vez de usar o teu uid, usa o uid que recebe.
+    public void obterAulasHoje(Context context, String uid, HorarioCallback callback) {
+        if (uid == null) {
+            mainHandler.post(() -> callback.onResult(null, "NOT_AUTHENTICATED"));
+            return;
+        }
+
+        new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            @Override
+            public void onSuccess(String idToken) {
+                obterAulasHojeComToken(uid, idToken, callback);
+            }
+
+            @Override
+            public void onError(String erro) {
+                callback.onResult(null, erro);
+            }
+        });
+    }
+
     // O token já foi confirmado ou renovado; agora podemos consultar o Firestore.
     private void obterAulasHojeComToken(
             String uid,

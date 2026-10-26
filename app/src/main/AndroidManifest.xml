@@ -50,6 +50,9 @@
             android:exported="false" />
         <activity android:name=".controllers.PerfilActivity" android:exported="false" />
 
+        <!-- Horário de hoje de um amigo, aberto a partir da lista de amigos. -->
+        <activity android:name=".controllers.HorarioAmigoActivity" android:exported="false" />
+
     </application>
 
 </manifest>
