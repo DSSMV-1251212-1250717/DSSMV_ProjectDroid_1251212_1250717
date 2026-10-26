@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
+import pt.isep.dssmv.mapaisep.dto.AlunoDTO;
 import pt.isep.dssmv.mapaisep.dto.AmigoDTO;
+import pt.isep.dssmv.mapaisep.mappers.AlunoMapper;
 import pt.isep.dssmv.mapaisep.mappers.AmigoMapper;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
@@ -24,6 +26,7 @@ public class AmigosService {
 
     private final HttpClient httpClient = new HttpClient();
     private final AmigoMapper amigoMapper = new AmigoMapper();
+    private final AlunoMapper alunoMapper = new AlunoMapper();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface ListaCallback {
@@ -262,15 +265,10 @@ public class AmigosService {
         }
     }
 
-    // Lê o uid, o nome e o número de um documento de aluno.
+    // Documento alunos/{uid} -> AlunoDTO (AlunoMapper) -> Amigo (AmigoMapper).
     private Amigo lerAluno(JSONObject documento) throws JSONException {
-        JSONObject campos = documento.getJSONObject("fields");
-        String caminho = documento.getString("name");
-
-        return new Amigo(
-                caminho.substring(caminho.lastIndexOf('/') + 1),
-                campos.getJSONObject("nome").getString("stringValue"),
-                campos.getJSONObject("numero").getString("stringValue"));
+        AlunoDTO dto = alunoMapper.desserializar(documento);
+        return amigoMapper.converterParaModelo(dto);
     }
 
     // Documento com o nome e o número do amigo, guardado na lista do dono.

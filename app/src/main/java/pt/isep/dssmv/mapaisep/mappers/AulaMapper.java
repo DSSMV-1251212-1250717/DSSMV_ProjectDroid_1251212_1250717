@@ -5,7 +5,6 @@ import org.json.JSONObject;
 import java.time.LocalTime;
 import pt.isep.dssmv.mapaisep.dto.AulaDTO;
 import pt.isep.dssmv.mapaisep.model.Aula;
-import pt.isep.dssmv.mapaisep.model.Sala;
 
 // Converte JSON -> DTO -> modelo. Não faz pedidos HTTP nem atualiza o ecrã.
 public class AulaMapper {
@@ -29,12 +28,9 @@ public class AulaMapper {
         LocalTime inicio = LocalTime.parse(dto.getHoraInicio());
         LocalTime fim = LocalTime.parse(dto.getHoraFim());
 
-        // Create a Sala object using its room code.
-        // Geographic coordinates will be added later.
-        Sala sala = new Sala(dto.getSalaId());
-
         // Create the Model object.
         // The constructor validates the lesson information.
-        return new Aula(dto.getNome(), dto.getDiaSemana(), inicio, fim, sala);
+        // A sala fica só com o código (salaId); as coordenadas estão em locais.
+        return new Aula(dto.getNome(), dto.getDiaSemana(), inicio, fim, dto.getSalaId());
     }
 }

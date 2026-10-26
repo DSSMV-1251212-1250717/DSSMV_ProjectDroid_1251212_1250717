@@ -10,6 +10,8 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
+import pt.isep.dssmv.mapaisep.dto.AlunoDTO;
+import pt.isep.dssmv.mapaisep.mappers.AlunoMapper;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
 import pt.isep.dssmv.mapaisep.network.HttpResponse;
 
@@ -17,6 +19,7 @@ import pt.isep.dssmv.mapaisep.network.HttpResponse;
 public class PerfilService {
     private final HttpClient httpClient = new HttpClient();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final AlunoMapper alunoMapper = new AlunoMapper();
 
     // fotoBase64 vem null quando o aluno ainda não escolheu nenhuma foto.
     public interface PerfilCallback {
@@ -46,17 +49,13 @@ public class PerfilService {
                             devolver(callback, null, null, null, "HTTP_" + resposta.getStatusCode());
                             return;
                         }
-                        JSONObject campos = new JSONObject(resposta.getBody()).getJSONObject("fields");
-                        String numero = lerValor(campos.getJSONObject("numero"));
-                        String turma = lerValor(campos.getJSONObject("turmaId"));
-
-                        // A foto é opcional: só existe depois de o aluno a escolher.
-                        String foto = null;
-                        if (campos.has("fotoBase64")) {
-                            foto = campos.getJSONObject("fotoBase64").getString("stringValue");
+                        // JSON -> AlunoDTO (AlunoMapper). A foto é opcional (null se não existir).
+                        AlunoDTO aluno = alunoMapper.desserializar(new JSONObject(resposta.getBody()));
+                        if (aluno.numero == null || aluno.turmaId == null) {
+                            throw new JSONException("Perfil incompleto");
                         }
 
-                        devolver(callback, numero, turma, foto, null);
+                        devolver(callback, aluno.numero, aluno.turmaId, aluno.fotoBase64, null);
                     } catch (Exception e) {
                         devolver(callback, null, null, null, "PROFILE_ERROR");
                     }
@@ -138,10 +137,8 @@ public class PerfilService {
                         HttpResponse resposta = httpClient.enviarPedido(
                                 FirebaseConfig.FIRESTORE_URL + "/alunos/" + uid, "GET", idToken, null);
                         if (resposta.isSuccessful()) {
-                            JSONObject campos = new JSONObject(resposta.getBody()).getJSONObject("fields");
-                            if (campos.has("fotoBase64")) {
-                                foto = campos.getJSONObject("fotoBase64").getString("stringValue");
-                            }
+                            // JSON -> AlunoDTO (AlunoMapper); só interessa a foto.
+                            foto = alunoMapper.desserializar(new JSONObject(resposta.getBody())).fotoBase64;
                         }
                     } catch (IOException | JSONException e) {
                         // Sem foto: o cartão fica com o ícone por defeito.
@@ -158,11 +155,6 @@ public class PerfilService {
                 callback.onResult(null);
             }
         });
-    }
-
-    private String lerValor(JSONObject valor) {
-        if (valor.has("stringValue")) return valor.optString("stringValue");
-        return valor.optString("integerValue");
     }
 
     private void devolver(PerfilCallback callback, String numero, String turma, String foto, String erro) {

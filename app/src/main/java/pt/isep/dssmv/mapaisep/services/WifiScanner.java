@@ -65,12 +65,21 @@ public class WifiScanner {
     }
 
     // Procura na lista o router da biblioteca e devolve o RSSI dele, ou null.
+    // Devolve o RSSI mais forte entre os routers da biblioteca (null se nenhum for visto).
     private Integer procurarBssid(List<ScanResult> redes) {
-        for (ScanResult rede : redes) {
-            if (rede.BSSID != null && rede.BSSID.equalsIgnoreCase(BibliotecaConfig.BSSID)) {
-                return rede.level;
+        Integer melhor = null;
+        for (int i = 0; i < redes.size(); i++) {
+            ScanResult rede = redes.get(i);
+            if (rede.BSSID == null) {
+                continue;
+            }
+            if (!BibliotecaConfig.BSSIDS.contains(rede.BSSID.toLowerCase())) {
+                continue;
+            }
+            if (melhor == null || rede.level > melhor) {
+                melhor = rede.level;
             }
         }
-        return null;
+        return melhor;
     }
 }

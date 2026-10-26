@@ -45,13 +45,8 @@
     <string name="session_expired">A sessão terminou. Inicia sessão novamente.</string>
     <string name="location_permission_required">A localização precisa de permissão.</string>
     <string name="horario_empty">Não tens aulas marcadas para hoje.</string>
-    <string name="horario_error">Não foi possível carregar as aulas: %1$s</string>
-    <string name="horario_lesson">%1$s\n%2$s — %3$s</string>
-    <string name="campus_coming_soon">Em preparação</string>
     <string name="campus_home">Início</string>
     <string name="campus_map">Mapa</string>
-    <string name="campus_map_title">O campus na tua mão.</string>
-    <string name="campus_map_body">Estamos a preparar este espaço para explorares os edifícios e encontrares a tua sala.</string>
     <string name="open_account_menu">Abrir menu da conta</string>
     <string name="friends">Amigos</string>
     <string name="profile">Perfil</string>

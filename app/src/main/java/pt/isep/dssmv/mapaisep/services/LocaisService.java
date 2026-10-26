@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
-import pt.isep.dssmv.mapaisep.dto.LocalMapaDTO;
+import pt.isep.dssmv.mapaisep.dto.LocalDTO;
 import pt.isep.dssmv.mapaisep.mappers.LocalCampusMapper;
-import pt.isep.dssmv.mapaisep.model.LocalMapa;
+import pt.isep.dssmv.mapaisep.model.Local;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
 import pt.isep.dssmv.mapaisep.network.HttpResponse;
 
@@ -26,7 +26,7 @@ public class    LocaisService {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface LocaisCallback {
-        void onResult(List<LocalMapa> locais, String erro);
+        void onResult(List<Local> locais, String erro);
     }
 
     public void obterLocais(Context context, LocaisCallback callback) {
@@ -47,12 +47,12 @@ public class    LocaisService {
 
                         JSONArray documentos = new JSONObject(resposta.getBody())
                                 .optJSONArray("documents");
-                        List<LocalMapa> locais = new ArrayList<>();
+                        List<Local> locais = new ArrayList<>();
 
                         if (documentos != null) {
                             for (int i = 0; i < documentos.length(); i++) {
                                 try {
-                                    LocalMapaDTO dto = mapper.desserializar(
+                                    LocalDTO dto = mapper.desserializar(
                                             documentos.getJSONObject(i)
                                     );
                                     locais.add(mapper.converterParaModelo(dto));

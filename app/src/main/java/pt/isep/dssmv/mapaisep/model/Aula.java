@@ -9,13 +9,13 @@ public class Aula {
     private int diaSemana;          // 1 = segunda ... 7 = domingo
     private LocalTime horaInicio;
     private LocalTime horaFim;
-    private Sala sala;
+    private String salaId;          // código da sala, igual ao id do documento em locais (ex.: "B201")
 
-    public Aula(String disciplina, int diaSemana, LocalTime horaInicio, LocalTime horaFim, Sala sala) {
+    public Aula(String disciplina, int diaSemana, LocalTime horaInicio, LocalTime horaFim, String salaId) {
         setDisciplina(disciplina);
         setDiaSemana(diaSemana);
         setHoras(horaInicio, horaFim);
-        setSala(sala);
+        setSalaId(salaId);
     }
 
     public String getDisciplina() { return disciplina; }
@@ -48,13 +48,13 @@ public class Aula {
         this.horaFim = horaFim;
     }
 
-    public Sala getSala() { return sala; }
+    public String getSalaId() { return salaId; }
 
-    public void setSala(Sala sala) {
-        if (sala == null) {
+    public void setSalaId(String salaId) {
+        if (salaId == null || salaId.trim().isEmpty()) {
             throw new InvalidDataException("A aula tem de ter uma sala");
         }
-        this.sala = sala;
+        this.salaId = salaId.trim();
     }
 
     /** true se a aula está a decorrer à hora indicada */
@@ -65,6 +65,6 @@ public class Aula {
     @Override
 
     public String toString() {
-        return horaInicio + "-" + horaFim + " " + disciplina + " (" + sala.getCodigo() + ")";
+        return horaInicio + "-" + horaFim + " " + disciplina + " (" + salaId + ")";
     }
 }

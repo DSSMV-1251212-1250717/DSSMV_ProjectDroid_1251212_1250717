@@ -16,7 +16,9 @@ import java.util.Collections;
 import java.util.List;
 
 import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
+import pt.isep.dssmv.mapaisep.dto.AlunoDTO;
 import pt.isep.dssmv.mapaisep.dto.AulaDTO;
+import pt.isep.dssmv.mapaisep.mappers.AlunoMapper;
 import pt.isep.dssmv.mapaisep.mappers.AulaMapper;
 import pt.isep.dssmv.mapaisep.model.Aula;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
@@ -25,6 +27,7 @@ import pt.isep.dssmv.mapaisep.network.HttpResponse;
 public class HorarioService {
     private final HttpClient httpClient = new HttpClient();
     private final AulaMapper aulaMapper = new AulaMapper();
+    private final AlunoMapper alunoMapper = new AlunoMapper();
 
     // Allows the secondary thread to schedule the callback
     // on Android's main thread.
@@ -157,7 +160,6 @@ public class HorarioService {
                     //
                     // Convert strings into their Java data types.
                     // For example, "09:00" becomes a LocalTime.
-                    // Also create a Sala object.
                     //
                     // The Aula constructor validates the data.
                     Aula modelo = aulaMapper.converterParaModelo(dto);
@@ -211,12 +213,12 @@ public class HorarioService {
         // First HTTP request: GET the student's document.
         String resposta = enviarPedido(endereco, "GET", idToken, null);
 
-        JSONObject documento = new JSONObject(resposta);
-
-        JSONObject campos = documento.getJSONObject("fields");
-
-        // Read the class identifier, for example "TurmaB".
-        return campos.getJSONObject("turmaId").getString("stringValue");
+        // JSON -> AlunoDTO (AlunoMapper); só interessa a turma, por exemplo "TurmaB".
+        AlunoDTO aluno = alunoMapper.desserializar(new JSONObject(resposta));
+        if (aluno.turmaId == null) {
+            throw new JSONException("Aluno sem turma");
+        }
+        return aluno.turmaId;
     }
 
     // Creates a Firestore query for class and weekday.

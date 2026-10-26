@@ -1,10 +1,19 @@
 package pt.isep.dssmv.mapaisep.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 // Configuração da deteção de presença na biblioteca.
-// É o único sítio a alterar depois de medir o router na biblioteca.
+// É o único sítio a alterar depois de medir os routers na biblioteca.
 public final class BibliotecaConfig {
-    // BSSID (endereço) do router da biblioteca. Valor provisório: substituir pelo medido.
-    public static final String BSSID = "aa:bb:cc:dd:ee:ff";
+    // BSSIDs (endereços) dos routers da biblioteca, medidos a 26/10, em minúsculas.
+    // Cada router emite com 3 endereços.
+    public static final List<String> BSSIDS = Arrays.asList(
+            // Router do rés do chão / 1.º andar (-51 a -62 dBm lá dentro)
+            "60:de:f3:11:f4:44", "60:de:f3:11:f4:45", "60:de:f3:11:f4:46",
+            // Router do 2.º andar (-57 dBm lá dentro)
+            "60:de:f3:58:63:f1", "60:de:f3:58:63:f3", "60:de:f3:58:63:f5"
+    );
 
     // Força do sinal (RSSI, em dBm) acima da qual o aluno conta como presente.
     public static final int LIMIAR_ENTRADA = -65;

@@ -1,7 +1,7 @@
 package pt.isep.dssmv.mapaisep.dto;
 
 /** Valores da coleção Firestore locais, ainda no formato da API. */
-public final class LocalMapaDTO {
+public final class LocalDTO {
     public final String id;
     public final String nome;
     public final String tipo;
@@ -9,7 +9,7 @@ public final class LocalMapaDTO {
     public final double latitude;
     public final double longitude;
 
-    public LocalMapaDTO(String id, String nome, String tipo, String edificio,
+    public LocalDTO(String id, String nome, String tipo, String edificio,
                          double latitude, double longitude) {
         this.id = id;
         this.nome = nome;

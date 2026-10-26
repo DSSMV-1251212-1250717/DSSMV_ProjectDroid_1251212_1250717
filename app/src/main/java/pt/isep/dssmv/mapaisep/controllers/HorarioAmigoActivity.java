@@ -77,7 +77,7 @@ public class HorarioAmigoActivity extends AppCompatActivity {
                             aula.getHoraInicio().toString(),
                             aula.getHoraFim().toString(),
                             aula.getDisciplina(),
-                            aula.getSala().getCodigo()
+                            aula.getSalaId()
                     ));
                 }
 

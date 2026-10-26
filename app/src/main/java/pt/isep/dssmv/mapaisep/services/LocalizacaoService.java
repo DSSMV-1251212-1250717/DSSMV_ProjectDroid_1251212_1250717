@@ -15,7 +15,6 @@ import pt.isep.dssmv.mapaisep.config.FirebaseConfig;
 import pt.isep.dssmv.mapaisep.dto.LocalizacaoDTO;
 import pt.isep.dssmv.mapaisep.mappers.LocalizacaoAmigoMapper;
 import pt.isep.dssmv.mapaisep.model.Amigo;
-import pt.isep.dssmv.mapaisep.model.LocalizacaoAmigo;
 import pt.isep.dssmv.mapaisep.network.HttpClient;
 import pt.isep.dssmv.mapaisep.network.HttpResponse;
 
@@ -26,7 +25,7 @@ public class LocalizacaoService {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface LocalizacoesCallback {
-        void onResult(List<LocalizacaoAmigo> localizacoes, String erro);
+        void onResult(List<Amigo> amigosComPosicao, String erro);
     }
 
     /**
@@ -81,7 +80,7 @@ public class LocalizacaoService {
             public void onSuccess(String idToken) {
                 new Thread(() -> {
                     try {
-                        List<LocalizacaoAmigo> resultado = new ArrayList<>();
+                        List<Amigo> resultado = new ArrayList<>();
 
                         for (Amigo amigo : amigos) {
                             HttpResponse resposta = httpClient.enviarPedido(
@@ -102,10 +101,12 @@ public class LocalizacaoService {
                                 return;
                             }
 
+                            // JSON -> LocalizacaoDTO -> posição guardada no próprio Amigo.
                             LocalizacaoDTO dto = mapper.desserializar(
-                                    new JSONObject(resposta.getBody()), amigo
+                                    new JSONObject(resposta.getBody())
                             );
-                            resultado.add(mapper.converterParaModelo(dto));
+                            mapper.preencherPosicao(dto, amigo);
+                            resultado.add(amigo);
                         }
 
                         mainHandler.post(() -> callback.onResult(resultado, null));

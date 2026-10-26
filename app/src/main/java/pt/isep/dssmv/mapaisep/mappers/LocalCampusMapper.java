@@ -3,17 +3,17 @@ package pt.isep.dssmv.mapaisep.mappers;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import pt.isep.dssmv.mapaisep.dto.LocalMapaDTO;
-import pt.isep.dssmv.mapaisep.model.LocalMapa;
+import pt.isep.dssmv.mapaisep.dto.LocalDTO;
+import pt.isep.dssmv.mapaisep.model.Local;
 
 /** Converte cada documento Firestore de locais para dados usados pelo mapa. */
 public final class LocalCampusMapper {
-    public LocalMapaDTO desserializar(JSONObject documento) throws JSONException {
+    public LocalDTO desserializar(JSONObject documento) throws JSONException {
         JSONObject campos = documento.getJSONObject("fields");
         String caminho = documento.getString("name");
         String id = caminho.substring(caminho.lastIndexOf('/') + 1);
 
-        return new LocalMapaDTO(
+        return new LocalDTO(
                 id,
                 campos.getJSONObject("nome").getString("stringValue"),
                 campos.getJSONObject("tipo").getString("stringValue"),
@@ -23,8 +23,8 @@ public final class LocalCampusMapper {
         );
     }
 
-    public LocalMapa converterParaModelo(LocalMapaDTO dto) {
-        return new LocalMapa(dto.id, dto.nome, dto.tipo, dto.edificio,
+    public Local converterParaModelo(LocalDTO dto) {
+        return new Local(dto.id, dto.nome, dto.tipo, dto.edificio,
                 dto.latitude, dto.longitude);
     }
 
