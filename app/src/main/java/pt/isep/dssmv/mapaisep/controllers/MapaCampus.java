@@ -175,7 +175,10 @@ public class MapaCampus {
 
         String idProximaSala = proxima.getSalaId();
         for (Local local : locaisCampus) {
-            if (!local.getId().equals(idProximaSala)) {
+            // O ID vem do horário e do documento Firestore. Ignoramos apenas
+            // diferenças acidentais de maiúsculas ou espaços (por exemplo,
+            // "I203 " em vez de "I203").
+            if (!local.getId().trim().equalsIgnoreCase(idProximaSala.trim())) {
                 continue;
             }
 

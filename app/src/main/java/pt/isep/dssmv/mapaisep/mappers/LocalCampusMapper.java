@@ -15,8 +15,8 @@ public final class LocalCampusMapper {
 
         return new LocalDTO(
                 id,
-                campos.getJSONObject("nome").getString("stringValue"),
-                campos.getJSONObject("tipo").getString("stringValue"),
+                lerTexto(campos, "nome", id),
+                lerTexto(campos, "tipo", "Sala"),
                 lerEdificio(campos),
                 lerNumero(campos.getJSONObject("latitude")),
                 lerNumero(campos.getJSONObject("longitude"))
@@ -51,6 +51,16 @@ public final class LocalCampusMapper {
         if (campos.has("edificio")) {
             return campos.getJSONObject("edificio").getString("stringValue");
         }
-        return campos.getJSONObject("edifício").getString("stringValue");
+        return lerTexto(campos, "edifício", "");
+    }
+
+    // O marcador precisa apenas de ID, latitude e longitude. Os restantes
+    // campos são descritivos e não devem fazer uma sala válida desaparecer.
+    private String lerTexto(JSONObject campos, String nomeCampo, String valorPadrao)
+            throws JSONException {
+        if (!campos.has(nomeCampo)) {
+            return valorPadrao;
+        }
+        return campos.getJSONObject(nomeCampo).optString("stringValue", valorPadrao);
     }
 }
