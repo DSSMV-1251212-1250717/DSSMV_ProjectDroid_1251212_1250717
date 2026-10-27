@@ -17,7 +17,7 @@ public final class LocalCampusMapper {
                 id,
                 campos.getJSONObject("nome").getString("stringValue"),
                 campos.getJSONObject("tipo").getString("stringValue"),
-                campos.getJSONObject("edificio").getString("stringValue"),
+                lerEdificio(campos),
                 lerNumero(campos.getJSONObject("latitude")),
                 lerNumero(campos.getJSONObject("longitude"))
         );
@@ -43,5 +43,14 @@ public final class LocalCampusMapper {
         }
 
         throw new JSONException("Coordenada sem valor numérico");
+    }
+
+    // Alguns documentos foram criados no Firebase com "edifício" e outros
+    // com "edificio". Aceitamos ambas as formas para não ignorar a sala.
+    private String lerEdificio(JSONObject campos) throws JSONException {
+        if (campos.has("edificio")) {
+            return campos.getJSONObject("edificio").getString("stringValue");
+        }
+        return campos.getJSONObject("edifício").getString("stringValue");
     }
 }
