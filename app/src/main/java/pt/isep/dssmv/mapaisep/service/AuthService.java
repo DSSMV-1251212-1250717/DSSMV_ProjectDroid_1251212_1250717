@@ -191,7 +191,6 @@ public class AuthService {
     public static String getCurrentUid() {
         return currentUid;
     }
-    //O getIdToken é static
 
     // Usado apenas para verificar se existe uma sessão na memória.
     // Os pedidos ao Firestore devem usar obterIdTokenValido().

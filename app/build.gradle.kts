@@ -72,5 +72,5 @@ tasks.register<Exec>("runDebugOnEmulator") {
     description = "Instala e abre MapaISEP no emulador Android ligado."
     dependsOn("installDebug")
     executable = File(androidSdkPath, "platform-tools/$adbExecutable").absolutePath
-    args("shell", "am", "start", "-n", "pt.isep.dssmv.mapaisep/.controllers.LoginActivity")
+    args("shell", "am", "start", "-n", "pt.isep.dssmv.mapaisep/.LoginActivity")
 }

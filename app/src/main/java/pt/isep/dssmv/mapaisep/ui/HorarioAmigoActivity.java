@@ -11,6 +11,7 @@ import java.util.List;
 
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
+import pt.isep.dssmv.mapaisep.helper.SessaoHelper;
 import pt.isep.dssmv.mapaisep.model.Aula;
 import pt.isep.dssmv.mapaisep.service.HorarioService;
 
@@ -87,4 +88,11 @@ public class HorarioAmigoActivity extends AppCompatActivity {
         });
     }
 
+    // Ao sair deste ecrã, regista a hora: a app esteve em uso até agora
+    // (conta para a sessão de 2 minutos, verificada pelo MenuPrincipalActivity).
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SessaoHelper.registarAtividade(this);
+    }
 }

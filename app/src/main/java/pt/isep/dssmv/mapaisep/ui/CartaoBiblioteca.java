@@ -7,6 +7,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import pt.isep.dssmv.mapaisep.R;
+import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
 import pt.isep.dssmv.mapaisep.service.BibliotecaService;
 import pt.isep.dssmv.mapaisep.service.DetetorPresenca;
 
@@ -77,6 +78,11 @@ public class CartaoBiblioteca {
                 }
 
                 if (erro != null) {
+                    // Sessão expirada: igual aos outros ecrãs (mensagem e volta ao login).
+                    if (erro.equals(SessaoExpiradaException.CODIGO)) {
+                        MenuConta.sessaoExpirada(activity);
+                        return;
+                    }
                     textoBiblioteca.setText(R.string.biblioteca_indisponivel);
                     return;
                 }
@@ -91,6 +97,6 @@ public class CartaoBiblioteca {
             }
         };
         // Entrega o callback ao serviço, que faz o pedido numa thread secundária.
-        bibliotecaService.obterLotacao(callback);
+        bibliotecaService.obterLotacao(activity, callback);
     }
 }

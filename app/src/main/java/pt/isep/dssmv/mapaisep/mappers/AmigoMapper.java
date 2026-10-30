@@ -12,7 +12,7 @@ public final class AmigoMapper {
     private AmigoMapper() {
     }
 
-    // Da lista de amigos (alunos/{teu uid}/amigos/{uid}).
+    // Da lista de amigos (alunos/{uid do aluno}/amigos/{uid}).
     public static Amigo amigoDTO2Amigo(AmigoDTO dto) {
         return new Amigo(dto.getUid(), dto.getNome(), dto.getNumero());
     }

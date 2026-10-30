@@ -43,7 +43,7 @@ public final class JsonHandler {
         );
     }
 
-    // Documento de alunos/{teu uid}/amigos/{uid do amigo}.
+    // Documento de alunos/{uid do aluno}/amigos/{uid do amigo}.
     public static AmigoDTO json2AmigoDTO(JSONObject documento) throws JSONException {
         JSONObject campos = documento.getJSONObject("fields");
 

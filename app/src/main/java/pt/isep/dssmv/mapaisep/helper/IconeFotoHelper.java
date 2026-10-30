@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 // Transforma a foto de perfil (texto Base64) num ícone redondo para um marcador do Google Maps.
-// Usado pela LocalizacaoAluno (a tua posição) e pela AmigosNoMapa (os amigos).
+// Usado pela LocalizacaoAluno (posição do aluno) e pela AmigosNoMapa (os amigos).
 public final class IconeFotoHelper {
 
     private IconeFotoHelper() {

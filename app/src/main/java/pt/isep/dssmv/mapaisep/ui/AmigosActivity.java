@@ -86,6 +86,14 @@ public class AmigosActivity extends AppCompatActivity {
         carregarAmigos();
     }
 
+    // Ao sair deste ecrã, regista a hora: a app esteve em uso até agora.
+    // Sem isto, o MenuPrincipalActivity só conhecia a hora em que este ecrã foi aberto
+    // e, passados 2 minutos aqui, mandava o aluno para o login ao voltar.
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SessaoHelper.registarAtividade(this);
+    }
 
     private void carregarAmigos() {
         textoEstado.setText(R.string.friends_loading);

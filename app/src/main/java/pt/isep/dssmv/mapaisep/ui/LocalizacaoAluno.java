@@ -23,7 +23,7 @@ import pt.isep.dssmv.mapaisep.service.LocalizacaoService;
 import pt.isep.dssmv.mapaisep.service.PerfilService;
 import pt.isep.dssmv.mapaisep.helper.IconeFotoHelper;
 
-// A localização do utilizador: a tua foto no mapa, na posição do GPS, e o envio da posição para o Firestore.
+// A localização do aluno: a foto dele no mapa, na posição do GPS, e o envio da posição para o Firestore.
 // O MenuPrincipalActivity cria-a no onCreate, entrega-lhe o mapa e chama ativar() / parar().
 public class LocalizacaoAluno {
     // Uma "última posição conhecida" mais antiga do que isto já não é usada (pode ser de outro sítio).
@@ -35,7 +35,7 @@ public class LocalizacaoAluno {
     private final LocationListener ouvinteLocalizacao;
 
     private GoogleMap mapa;
-    // A tua posição é desenhada com a tua foto de perfil (num círculo azul), e não com o ponto azul.
+    // A posição do aluno é desenhada com a foto de perfil (num círculo azul), e não com o ponto azul.
     private Marker marcadorMinhaLocalizacao;
     private Location ultimaPosicaoMinha;
     private BitmapDescriptor iconeMinhaFoto;
@@ -52,7 +52,7 @@ public class LocalizacaoAluno {
 
         // Chamado pelo Android quando há novidades do GPS.
         ouvinteLocalizacao = new LocationListener() {
-            // Posição nova: move a tua foto no mapa e partilha a posição.
+            // Posição nova: move a foto do aluno no mapa e partilha a posição.
             @Override
             public void onLocationChanged(Location localizacao) {
                 atualizarPontoLocalizacao(localizacao);
@@ -171,7 +171,7 @@ public class LocalizacaoAluno {
         }
     }
 
-    // Move o ponto azul e, se o mapa estiver aberto, envia a posição para o Firestore.
+    // Move a foto do aluno e, se o mapa estiver aberto, envia a posição para o Firestore.
     private void atualizarPontoLocalizacao(Location localizacao) {
 
         if (mapa == null) {
@@ -191,7 +191,7 @@ public class LocalizacaoAluno {
         }
     }
 
-    // Pede a tua foto ao Firestore e transforma-a no ícone do marcador (contorno azul).
+    // Pede a foto do aluno ao Firestore e transforma-a no ícone do marcador (contorno azul).
     private void carregarIconeMinhaFoto() {
         new PerfilService().obterFoto(context, AuthService.getCurrentUid(), fotoBase64 -> {
             iconeMinhaFoto = IconeFotoHelper.criar(fotoBase64, Color.rgb(25, 118, 210));
@@ -199,7 +199,7 @@ public class LocalizacaoAluno {
         });
     }
 
-    // Cria o marcador com a tua foto ou move-o para a última posição conhecida.
+    // Cria o marcador com a foto do aluno ou move-o para a última posição conhecida.
     private void desenharMinhaLocalizacao() {
         if (mapa == null || ultimaPosicaoMinha == null || iconeMinhaFoto == null) {
             return;

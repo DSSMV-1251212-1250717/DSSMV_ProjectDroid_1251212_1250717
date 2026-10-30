@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -27,19 +28,31 @@ public class BibliotecaService {
         void onResult(Integer lotacaoEstimativa, String erro);
     }
 
-    public void obterLotacao(BibliotecaCallback callback){
-        //O getIdToken é static
-        // idToken: prova ao Firestore que o pedido vem de um aluno autenticado.
-        // Vai no cabeçalho "Authorization: Bearer"; sem ele, o Firestore recusa (401/403).
-        String idToken = AuthService.getIdToken();
-
-        // Sem token não há sessão: entrega o erro na main thread e não faz o pedido.
-        if (idToken == null) {
+    public void obterLotacao(Context context, BibliotecaCallback callback) {
+        // Sem sessão: entrega o erro na main thread e não faz o pedido.
+        if (AuthService.getCurrentUid() == null) {
             mainHandler.post(() -> callback.onResult(null, SessaoExpiradaException.CODIGO));
-            //pede para correr na main thread a funcao implementada
             return;
         }
 
+        // idToken: prova ao Firestore que o pedido vem de um aluno autenticado.
+        // Vai no cabeçalho "Authorization: Bearer"; sem ele, o Firestore recusa (401/403).
+        // O AuthService entrega um token válido e renova-o se estiver quase a expirar (dura 1 hora).
+        new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            @Override
+            public void onSuccess(String idToken) {
+                pedirLotacao(idToken, callback);
+            }
+
+            @Override
+            public void onError(String erro) {
+                callback.onResult(null, erro);
+            }
+        });
+    }
+
+    // O token já foi confirmado ou renovado: faz o pedido de contagem ao Firestore.
+    private void pedirLotacao(String idToken, BibliotecaCallback callback) {
         new Thread(() -> {
             // Se uma linha do try lançar uma exceção, o Java pára ali e salta logo
             // para o catch desse tipo; as linhas que faltam no try não correm.
@@ -71,7 +84,7 @@ public class BibliotecaService {
                 // ou passaram os 10 segundos de timeout. Entrega o erro na main thread.
                 mainHandler.post(() -> callback.onResult(null, "NETWORK_ERROR"));
             } catch (JSONException | NumberFormatException e) {
-                // JSON diferente do esperado (ex.: falta o numeroPessoas) ou valor que não é número.
+                // JSON diferente do esperado (ex.: falta o campo total) ou valor que não é número.
                 mainHandler.post(() -> callback.onResult(null, "INVALID_DATA"));
             }
         }).start();

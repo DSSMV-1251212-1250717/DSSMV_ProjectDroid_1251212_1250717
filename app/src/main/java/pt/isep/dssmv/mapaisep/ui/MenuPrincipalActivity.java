@@ -32,7 +32,7 @@ import pt.isep.dssmv.mapaisep.LoginActivity;
 // Ecrã principal: página Início (horário e biblioteca) e página Mapa.
 // Cada tarefa grande está numa classe própria; aqui só se criam, ligam e desligam:
 //   MapaCampus            -> campus, biblioteca e sala da próxima aula no mapa
-//   LocalizacaoAluno -> o teu ponto no mapa e o envio da tua posição
+//   LocalizacaoAluno      -> foto do aluno no mapa e envio da posição dele
 //   AmigosNoMapa          -> posição dos amigos (de 5 em 5 segundos)
 //   CartaoBiblioteca      -> lotação e deteção de presença por Wi-Fi
 public class MenuPrincipalActivity extends AppCompatActivity implements OnMapReadyCallback {

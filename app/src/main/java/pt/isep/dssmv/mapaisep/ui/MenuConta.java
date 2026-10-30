@@ -49,7 +49,7 @@ public class MenuConta {
         menu.show();
     }
 
-    // Abre o ecrã escolhido. Se já estás nele, não faz nada.
+    // Abre o ecrã escolhido. Se já é o ecrã atual, não faz nada.
     // CLEAR_TOP: se o ecrã já está aberto por baixo, volta a ele (fecha os de cima)
     // em vez de abrir outro igual. SINGLE_TOP: reaproveita-o, não o cria de novo.
     private static void irPara(Activity activity, Class<?> ecra) {

@@ -22,6 +22,7 @@ import java.io.InputStream;
 
 import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
+import pt.isep.dssmv.mapaisep.helper.SessaoHelper;
 import pt.isep.dssmv.mapaisep.service.PerfilService;
 
 public class PerfilActivity extends AppCompatActivity {
@@ -61,6 +62,14 @@ public class PerfilActivity extends AppCompatActivity {
                 mostrarFoto(fotoBase64);
             }
         });
+    }
+
+    // Ao sair deste ecrã, regista a hora: a app esteve em uso até agora
+    // (conta para a sessão de 2 minutos, verificada pelo MenuPrincipalActivity).
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SessaoHelper.registarAtividade(this);
     }
 
     private void configurarSeletorFoto() {

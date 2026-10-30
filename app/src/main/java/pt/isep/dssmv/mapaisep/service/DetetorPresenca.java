@@ -12,6 +12,7 @@ import pt.isep.dssmv.mapaisep.helper.WifiHelper;
 // O MenuPrincipalActivity liga-o no onResume e desliga-o no onPause.
 public class DetetorPresenca {
 
+    private final Context context;
     private final WifiHelper wifiScanner;
     private final PresencaService presencaService = new PresencaService();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -33,6 +34,8 @@ public class DetetorPresenca {
     private final Runnable aoTerminarCiclo;
 
     public DetetorPresenca(Context context, Runnable aoTerminarCiclo) {
+        // Context da app (não o ecrã): o PresencaService usa-o para renovar o token.
+        this.context = context.getApplicationContext();
         this.wifiScanner = new WifiHelper(context);
         this.aoTerminarCiclo = aoTerminarCiclo;
     }
@@ -100,7 +103,7 @@ public class DetetorPresenca {
                 agendarProximo();
             }
         };
-        presencaService.marcarPresenca(callbackPresenca);
+        presencaService.marcarPresenca(context, callbackPresenca);
     }
 
     // 3b. DELETE: remove a presença.
@@ -114,7 +117,7 @@ public class DetetorPresenca {
                 agendarProximo();
             }
         };
-        presencaService.removerPresenca(callbackPresenca);
+        presencaService.removerPresenca(context, callbackPresenca);
     }
 
     // 4. Avisa quem criou o detetor e agenda o próximo ciclo para daqui a 30 segundos.

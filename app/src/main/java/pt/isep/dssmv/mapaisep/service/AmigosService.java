@@ -67,7 +67,7 @@ public class AmigosService {
                                 FirebaseConfig.FIRESTORE_URL + "/alunos/" + uidAtual + "/amigos",
                                 "GET", idToken, null);
 
-                        // 404: ainda não tens amigos.
+                        // 404: o aluno ainda não tem amigos.
                         if (resposta.getStatusCode() == 404) {
                             mainHandler.post(() -> callback.onResult(new ArrayList<>(), null));
                             return;
@@ -129,7 +129,7 @@ public class AmigosService {
             public void onSuccess(String idToken) {
                 new Thread(() -> {
                     try {
-                        // 2. Os teus dados.
+                        // 2. Dados do aluno com sessão iniciada.
                         Amigo eu = obterAluno(uidAtual, idToken);
 
                         // 3. Procurar o amigo pelo número.
@@ -145,7 +145,7 @@ public class AmigosService {
                             return;
                         }
 
-                        // 5. Se já é teu amigo, não grava outra vez: lança DuplicatedDataException.
+                        // 5. Se já são amigos, não grava outra vez: lança DuplicatedDataException.
                         if (jaEAmigo(uidAtual, amigo.getUid(), idToken)) {
                             throw new DuplicatedDataException("Já é amigo: " + amigo.getNumero());
                         }
@@ -220,7 +220,7 @@ public class AmigosService {
         return lerAluno(new JSONObject(resposta.getBody()));
     }
 
-    // GET a alunos/{teu uid}/amigos/{uid do amigo}: 200 = já é amigo, 404 = ainda não é.
+    // GET a alunos/{uid do aluno}/amigos/{uid do amigo}: 200 = já é amigo, 404 = ainda não é.
     private boolean jaEAmigo(String uidAtual, String uidAmigo, String idToken) throws IOException {
         HttpResponse resposta = networkHandler.enviarPedido(
                 FirebaseConfig.FIRESTORE_URL + "/alunos/" + uidAtual + "/amigos/" + uidAmigo,
@@ -264,7 +264,7 @@ public class AmigosService {
         return null;
     }
 
-    // Grava o amigo na tua lista e tu na lista dele, num só pedido.
+    // Grava o amigo na lista do aluno e o aluno na lista do amigo, num só pedido.
     private void gravarAmizade(String idToken, Amigo eu, Amigo amigo)
             throws IOException, JSONException {
         JSONArray escritas = new JSONArray()
@@ -280,7 +280,7 @@ public class AmigosService {
         }
     }
 
-    // Apaga o amigo da tua lista e tu da lista dele, num só pedido.
+    // Apaga o amigo da lista do aluno e o aluno da lista do amigo, num só pedido.
     private void apagarAmizade(String idToken, String uidAtual, String uidAmigo)
             throws IOException, JSONException {
         JSONArray escritas = new JSONArray()

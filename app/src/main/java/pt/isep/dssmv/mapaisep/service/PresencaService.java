@@ -1,5 +1,6 @@
 package pt.isep.dssmv.mapaisep.service;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -29,16 +30,29 @@ public class PresencaService {
     }
 
     // PATCH presencas/{uid}: cria o documento se não existir, ou renova a hora se já existir.
-    public void marcarPresenca(PresencaCallback callback) {
-        // Sessão: uid (qual o documento) e token (prova de identidade).
+    public void marcarPresenca(Context context, PresencaCallback callback) {
+        // Sessão: o uid diz qual é o documento.
         String uid = AuthService.getCurrentUid();
-        String idToken = AuthService.getIdToken();
-
-        if (uid == null || idToken == null) {
+        if (uid == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
             return;
         }
 
+        // Token válido (renovado se estiver quase a expirar) e só depois o pedido.
+        new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            @Override
+            public void onSuccess(String idToken) {
+                enviarMarcacao(uid, idToken, callback);
+            }
+
+            @Override
+            public void onError(String erro) {
+                callback.onResult(erro);
+            }
+        });
+    }
+
+    private void enviarMarcacao(String uid, String idToken, PresencaCallback callback) {
         // Thread secundária: a rede não pode bloquear a main thread.
         new Thread(() -> {
             try {
@@ -72,15 +86,27 @@ public class PresencaService {
     }
 
     // DELETE presencas/{uid}: apaga o documento, o aluno deixa de contar como presente.
-    public void removerPresenca(PresencaCallback callback) {
+    public void removerPresenca(Context context, PresencaCallback callback) {
         String uid = AuthService.getCurrentUid();
-        String idToken = AuthService.getIdToken();
-
-        if (uid == null || idToken == null) {
+        if (uid == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
             return;
         }
 
+        new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            @Override
+            public void onSuccess(String idToken) {
+                enviarRemocao(uid, idToken, callback);
+            }
+
+            @Override
+            public void onError(String erro) {
+                callback.onResult(erro);
+            }
+        });
+    }
+
+    private void enviarRemocao(String uid, String idToken, PresencaCallback callback) {
         new Thread(() -> {
             try {
                 String endereco = FirebaseConfig.FIRESTORE_URL + "/presencas/" + uid;

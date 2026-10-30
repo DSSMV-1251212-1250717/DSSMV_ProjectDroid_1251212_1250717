@@ -148,9 +148,8 @@ public class LoginActivity extends AppCompatActivity {
                     password,
 
                     new AuthService.LoginCallback() {
-                        //o authservice precisa de saber oque fazer quando receber a autenticacao
-                        //authservice disponibiliza uma interface para preenchermos
-                        //para poder saber oque fazer
+                        // O AuthService não sabe o que fazer com o resultado do login:
+                        // dá uma interface (LoginCallback) que este ecrã preenche.
 
                         // Corre quando o login correu bem.
                         @Override
