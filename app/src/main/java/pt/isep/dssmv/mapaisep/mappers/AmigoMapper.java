@@ -1,36 +1,33 @@
 package pt.isep.dssmv.mapaisep.mappers;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import pt.isep.dssmv.mapaisep.dto.AlunoDTO;
 import pt.isep.dssmv.mapaisep.dto.AmigoDTO;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 
-/** Cria os objetos Amigo: a partir da lista de amigos (AmigoDTO) ou do documento do aluno (AlunoDTO). */
-public class AmigoMapper {
+// DTO <-> Model do amigo. Todos os objetos Amigo são criados aqui:
+// a partir da lista de amigos (AmigoDTO) ou do documento do aluno (AlunoDTO).
+// Não valida nada: quem valida é o próprio Amigo (Information Expert).
+public final class AmigoMapper {
 
-    public AmigoDTO desserializarAmigo(JSONObject documento) throws JSONException {
-        JSONObject campos = documento.getJSONObject("fields");
-        String caminho = documento.getString("name");
-
-        AmigoDTO dto = new AmigoDTO();
-        dto.setUid(caminho.substring(caminho.lastIndexOf('/') + 1));
-        dto.setNome(campos.getJSONObject("nome").getString("stringValue"));
-        dto.setNumero(campos.getJSONObject("numero").getString("stringValue"));
-        return dto;
+    private AmigoMapper() {
     }
 
     // Da lista de amigos (alunos/{teu uid}/amigos/{uid}).
-    public Amigo converterParaModelo(AmigoDTO dto) {
+    public static Amigo amigoDTO2Amigo(AmigoDTO dto) {
         return new Amigo(dto.getUid(), dto.getNome(), dto.getNumero());
     }
 
     // Do documento principal do aluno (alunos/{uid}): usado ao adicionar um amigo.
-    public Amigo converterParaModelo(AlunoDTO dto) throws JSONException {
-        if (dto.nome == null || dto.numero == null) {
-            throw new JSONException("Aluno sem nome ou número");
-        }
-        return new Amigo(dto.uid, dto.nome, dto.numero);
+    public static Amigo alunoDTO2Amigo(AlunoDTO dto) {
+        return new Amigo(dto.getUid(), dto.getNome(), dto.getNumero());
+    }
+
+    // Model -> DTO: usado para gravar a amizade (o JsonHandler transforma-o em JSON).
+    public static AmigoDTO amigo2AmigoDTO(Amigo amigo) {
+        AmigoDTO dto = new AmigoDTO();
+        dto.setUid(amigo.getUid());
+        dto.setNome(amigo.getNome());
+        dto.setNumero(amigo.getNumero());
+        return dto;
     }
 }

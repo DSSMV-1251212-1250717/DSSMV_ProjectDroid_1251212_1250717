@@ -1,66 +1,16 @@
 package pt.isep.dssmv.mapaisep.mappers;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import pt.isep.dssmv.mapaisep.dto.LocalDTO;
 import pt.isep.dssmv.mapaisep.model.Local;
 
-/** Converte cada documento Firestore de locais para dados usados pelo mapa. */
+// DTO -> Model dos locais do campus (salas e biblioteca, coleção locais).
 public final class LocalCampusMapper {
-    public LocalDTO desserializar(JSONObject documento) throws JSONException {
-        JSONObject campos = documento.getJSONObject("fields");
-        String caminho = documento.getString("name");
-        String id = caminho.substring(caminho.lastIndexOf('/') + 1);
 
-        return new LocalDTO(
-                id,
-                lerTexto(campos, "nome", id),
-                lerTexto(campos, "tipo", "Sala"),
-                lerEdificio(campos),
-                lerNumero(campos.getJSONObject("latitude")),
-                lerNumero(campos.getJSONObject("longitude"))
-        );
+    private LocalCampusMapper() {
     }
 
-    public Local converterParaModelo(LocalDTO dto) {
-        return new Local(dto.id, dto.nome, dto.tipo, dto.edificio,
-                dto.latitude, dto.longitude);
-    }
-
-    private double lerNumero(JSONObject campo) throws JSONException {
-        if (campo.has("doubleValue")) {
-            return campo.getDouble("doubleValue");
-        }
-        if (campo.has("integerValue")) {
-            return Double.parseDouble(campo.getString("integerValue"));
-        }
-
-        // O Firebase Console também permite guardar coordenadas como texto.
-        // Aceitar esse formato impede que um marcador válido seja ignorado.
-        if (campo.has("stringValue")) {
-            return Double.parseDouble(campo.getString("stringValue"));
-        }
-
-        throw new JSONException("Coordenada sem valor numérico");
-    }
-
-    // Alguns documentos foram criados no Firebase com "edifício" e outros
-    // com "edificio". Aceitamos ambas as formas para não ignorar a sala.
-    private String lerEdificio(JSONObject campos) throws JSONException {
-        if (campos.has("edificio")) {
-            return campos.getJSONObject("edificio").getString("stringValue");
-        }
-        return lerTexto(campos, "edifício", "");
-    }
-
-    // O marcador precisa apenas de ID, latitude e longitude. Os restantes
-    // campos são descritivos e não devem fazer uma sala válida desaparecer.
-    private String lerTexto(JSONObject campos, String nomeCampo, String valorPadrao)
-            throws JSONException {
-        if (!campos.has(nomeCampo)) {
-            return valorPadrao;
-        }
-        return campos.getJSONObject(nomeCampo).optString("stringValue", valorPadrao);
+    // Converte um LocalDTO num Local do Model. O construtor do Local valida os dados.
+    public static Local localDTO2Local(LocalDTO dto) {
+        return new Local(dto.getId(), dto.getNome(), dto.getLatitude(), dto.getLongitude());
     }
 }

@@ -2,14 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Allows the application to communicate with external servers. -->
+    <!-- Deixa a app usar a internet (Firebase e Google Maps). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Permissions required to access the device's location. -->
+    <!-- Deixa a app saber a localização do telemóvel (aproximada e precisa). -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <!-- Permissions required to scan Wi-Fi networks (library presence). -->
+    <!-- Deixa a app procurar redes Wi-Fi (para saber se o aluno está na biblioteca). -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
@@ -23,35 +23,38 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MapaISEP">
 
-        <!-- Google Maps API key, configured separately from Firebase. -->
+        <!-- Chave do Google Maps. Vem do local.properties, que não vai para o GitHub. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
-        <!-- First screen displayed when the application starts. -->
+        <!-- Primeiro ecrã a abrir quando a app arranca. -->
         <activity
-            android:name=".controllers.LoginActivity"
+            android:name=".LoginActivity"
             android:exported="true">
 
             <intent-filter>
+                <!-- MAIN: este ecrã é a porta de entrada da app (o primeiro a abrir). -->
                 <action android:name="android.intent.action.MAIN" />
+                <!-- LAUNCHER: põe o ícone da app na lista de aplicações do telemóvel;
+                     tocar no ícone abre este ecrã. -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
         </activity>
 
-        <!-- Main screen opened after successful authentication. -->
+        <!-- Ecrã principal (Início e Mapa), aberto depois do login. -->
         <activity
-            android:name=".controllers.MenuPrincipal"
+            android:name=".ui.MenuPrincipalActivity"
             android:exported="false" />
 
         <activity
-            android:name=".controllers.AmigosActivity"
+            android:name=".ui.AmigosActivity"
             android:exported="false" />
-        <activity android:name=".controllers.PerfilActivity" android:exported="false" />
+        <activity android:name=".ui.PerfilActivity" android:exported="false" />
 
         <!-- Horário de hoje de um amigo, aberto a partir da lista de amigos. -->
-        <activity android:name=".controllers.HorarioAmigoActivity" android:exported="false" />
+        <activity android:name=".ui.HorarioAmigoActivity" android:exported="false" />
 
     </application>
 

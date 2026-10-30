@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Caixa de fora: o fitsSystemWindows põe o ecrã por baixo da barra do relógio e da bateria. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/campus_background"
+    android:fitsSystemWindows="true">
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -67,17 +74,16 @@
         android:layout_marginTop="24dp"
         android:text="@string/friends_loading" />
 
-    <ScrollView
+    <!-- Lista de amigos: cada linha é um item_amigo.xml, preenchido pelo ListViewAdapterAmigos. -->
+    <ListView
+        android:id="@+id/listaAmigos"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp">
-
-        <LinearLayout
-            android:id="@+id/listaAmigos"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
+        android:layout_marginTop="12dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="5dp" />
 
 </LinearLayout>
+
+</FrameLayout>

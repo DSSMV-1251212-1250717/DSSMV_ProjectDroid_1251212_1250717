@@ -1,35 +1,24 @@
 package pt.isep.dssmv.mapaisep.mappers;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import java.time.LocalTime;
+
 import pt.isep.dssmv.mapaisep.dto.AulaDTO;
 import pt.isep.dssmv.mapaisep.model.Aula;
 
-// Converte JSON -> DTO -> modelo. Não faz pedidos HTTP nem atualiza o ecrã.
-public class AulaMapper {
-    // Converts Firestore JSON fields into an AulaDTO.
-    public AulaDTO desserializarAula(JSONObject campos) throws JSONException {
-        AulaDTO dto = new AulaDTO();
+// DTO -> Model da aula. Não sabe o que é JSON (isso é o JsonHandler),
+// não faz pedidos HTTP nem mexe no ecrã.
+public final class AulaMapper {
 
-        dto.setNome(campos.getJSONObject("nome").getString("stringValue"));
-        dto.setDiaSemana(Integer.parseInt(campos.getJSONObject("diaSemana").getString("integerValue")));
-        dto.setHoraInicio(campos.getJSONObject("horaInicio").getString("stringValue"));
-        dto.setHoraFim(campos.getJSONObject("horaFim").getString("stringValue"));
-        dto.setSalaId(campos.getJSONObject("salaId").getString("stringValue"));
-        dto.setTurmaId(campos.getJSONObject("turmaId").getString("stringValue"));
-
-        return dto;
+    private AulaMapper() {
     }
 
-    // Converts an AulaDTO into a validated Aula Model object.
-    public Aula converterParaModelo(AulaDTO dto) {
-        // Convert API strings into Java LocalTime objects.
+    // Converte um AulaDTO numa Aula do Model.
+    public static Aula aulaDTO2Aula(AulaDTO dto) {
+        // Converte as horas (texto, por exemplo "09:00") em LocalTime.
         LocalTime inicio = LocalTime.parse(dto.getHoraInicio());
         LocalTime fim = LocalTime.parse(dto.getHoraFim());
 
-        // Create the Model object.
-        // The constructor validates the lesson information.
+        // Cria o objeto do Model. O construtor valida os dados da aula.
         // A sala fica só com o código (salaId); as coordenadas estão em locais.
         return new Aula(dto.getNome(), dto.getDiaSemana(), inicio, fim, dto.getSalaId());
     }

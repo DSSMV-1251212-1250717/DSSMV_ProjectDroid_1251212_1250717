@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Ecrã do horário de hoje de um amigo: o nome do amigo e as aulas dele. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Caixa de fora: o fitsSystemWindows põe o ecrã por baixo da barra do relógio e da bateria. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/campus_background"
+    android:fitsSystemWindows="true">
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/campus_background"
@@ -66,3 +73,5 @@
             android:textSize="16sp" />
     </ScrollView>
 </LinearLayout>
+
+</FrameLayout>

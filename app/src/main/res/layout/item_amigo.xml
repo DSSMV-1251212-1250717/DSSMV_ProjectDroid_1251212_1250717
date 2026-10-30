@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Molde de UM cartão da lista de amigos. O ListViewAdapterAmigos repete-o por cada amigo
+     e preenche a foto, o nome e o número. Em cima: foto, nome, número e Remover;
+     em baixo: o botão Ver horário, a ocupar a largura do cartão. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/bg_campus_card">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Começa com o ícone por defeito; a foto chega depois do pedido ao Firestore. -->
+        <ImageView
+            android:id="@+id/fotoAmigo"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginEnd="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_campus_pin"
+            android:contentDescription="@null" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/nomeAmigo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/campus_text" />
+
+            <TextView
+                android:id="@+id/numeroAmigo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/campus_muted" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRemoverAmigo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/friends_remove"
+            android:textColor="@color/campus_button_red" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVerHorarioAmigo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/friends_view_schedule"
+        android:textAllCaps="false" />
+
+</LinearLayout>

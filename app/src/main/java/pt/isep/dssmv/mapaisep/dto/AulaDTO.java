@@ -1,8 +1,9 @@
 package pt.isep.dssmv.mapaisep.dto;
 
+// Usado em: horário do aluno e horário de um amigo (coleção aulas).
 public class AulaDTO {
-    // Data received from the Firestore API.
-    // DTOs transport data without implementing business logic.
+    // Dados recebidos da API do Firestore.
+    // O DTO só transporta dados; não tem lógica.
 
     private String nome;
     private int diaSemana;
@@ -11,7 +12,7 @@ public class AulaDTO {
     private String salaId;
     private String turmaId;
 
-    // Empty constructor used to create a DTO before filling its fields.
+    // Construtor vazio: cria o DTO antes de preencher os campos.
     public AulaDTO() {
     }
 

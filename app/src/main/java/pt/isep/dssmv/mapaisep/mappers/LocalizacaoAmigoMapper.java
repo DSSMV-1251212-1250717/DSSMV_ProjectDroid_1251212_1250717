@@ -1,30 +1,17 @@
 package pt.isep.dssmv.mapaisep.mappers;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import pt.isep.dssmv.mapaisep.dto.LocalizacaoDTO;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 
-/** Converte o JSON de localizacoes/{uid} em DTO e põe essa posição no Amigo. */
+// DTO -> Model da posição de um amigo (coleção localizacoes).
+// Não cria nenhum Model: acrescenta a latitude e a longitude a um Amigo que já existe.
 public final class LocalizacaoAmigoMapper {
-    public LocalizacaoDTO desserializar(JSONObject documento) throws JSONException {
-        JSONObject campos = documento.getJSONObject("fields");
-        return new LocalizacaoDTO(
-                lerNumero(campos.getJSONObject("latitude")),
-                lerNumero(campos.getJSONObject("longitude"))
-        );
+
+    private LocalizacaoAmigoMapper() {
     }
 
-    // DTO -> Model: a posição passa a fazer parte do Amigo.
-    public void preencherPosicao(LocalizacaoDTO dto, Amigo amigo) {
-        amigo.definirPosicao(dto.latitude, dto.longitude);
-    }
-
-    private double lerNumero(JSONObject campo) throws JSONException {
-        if (campo.has("doubleValue")) {
-            return campo.getDouble("doubleValue");
-        }
-        return Double.parseDouble(campo.getString("integerValue"));
+    // Põe a latitude e a longitude do DTO no Amigo (o Amigo valida os valores).
+    public static void preencherPosicao(LocalizacaoDTO dto, Amigo amigo) {
+        amigo.definirPosicao(dto.getLatitude(), dto.getLongitude());
     }
 }

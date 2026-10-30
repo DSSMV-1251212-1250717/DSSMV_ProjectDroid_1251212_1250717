@@ -1,6 +1,7 @@
 package pt.isep.dssmv.mapaisep.dto;
 
 /** Dados do amigo no formato recebido do Firestore. */
+// Usado em: lista de amigos (alunos/{uid}/amigos).
 public class AmigoDTO {
 
     private String uid;

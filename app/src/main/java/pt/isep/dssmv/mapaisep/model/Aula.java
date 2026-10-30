@@ -4,6 +4,9 @@ import java.time.LocalTime;
 
 import pt.isep.dssmv.mapaisep.exceptions.InvalidDataException;
 
+// Uma aula do horário semanal de uma turma.
+// Information Expert (GRASP): esta classe tem os dados, por isso é ela que os valida.
+// Se algum for inválido, lança InvalidDataException e o objeto não chega a ser criado.
 public class Aula {
     private String disciplina;
     private int diaSemana;          // 1 = segunda ... 7 = domingo

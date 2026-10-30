@@ -74,11 +74,13 @@
     <string name="friends_invalid_number">O número deve ter exatamente 7 dígitos.</string>
     <string name="friends_not_found">Não existe um aluno com esse número.</string>
     <string name="friends_self">Não podes adicionar-te a ti próprio.</string>
+    <string name="friends_already">Este aluno já é teu amigo.</string>
     <string name="friends_error">Não foi possível atualizar a lista de amigos.</string>
     <string name="logout">Terminar sessão</string>
     <string name="biblioteca_titulo">Biblioteca</string>
     <string name="biblioteca_loading">A carregar a lotação…</string>
     <string name="biblioteca_lotacao">%1$d pessoas neste momento</string>
+    <string name="biblioteca_lotacao_uma">1 pessoa neste momento</string>
     <string name="biblioteca_indisponivel">Lotação indisponível.</string>
     <string name="biblioteca_sem_permissao">Para ver a lotação da biblioteca, ativa a localização precisa.</string>
     <string name="biblioteca_ativar_localizacao">Ativar localização</string>

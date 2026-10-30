@@ -1,28 +1,59 @@
 package pt.isep.dssmv.mapaisep.model;
 
-/** Um local fixo do campus, como uma sala ou a biblioteca. */
-public final class Local {
-    private final String id;
-    private final String nome;
-    private final String tipo;
-    private final String edificio;
-    private final double latitude;
-    private final double longitude;
+import pt.isep.dssmv.mapaisep.exceptions.InvalidDataException;
 
-    public Local(String id, String nome, String tipo, String edificio,
-                     double latitude, double longitude) {
-        this.id = id;
-        this.nome = nome;
-        this.tipo = tipo;
-        this.edificio = edificio;
+// Um local fixo do campus, como uma sala ou a biblioteca.
+// O id é o nome do documento em locais (por exemplo "B201"); é igual ao salaId das aulas.
+// Information Expert (GRASP): esta classe tem os dados, por isso é ela que os valida.
+// Se algum for inválido, lança InvalidDataException e o objeto não chega a ser criado.
+public final class Local {
+    private String id;
+    private String nome;
+    private double latitude;
+    private double longitude;
+
+    public Local(String id, String nome, double latitude, double longitude) {
+        setId(id);
+        setNome(nome);
+        setCoordenadas(latitude, longitude);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new InvalidDataException("Local sem identificador");
+        }
+        this.id = id.trim();
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new InvalidDataException("Nome do local inválido");
+        }
+        this.nome = nome.trim();
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    // As duas coordenadas validam-se juntas: latitude de -90 a 90, longitude de -180 a 180.
+    public void setCoordenadas(double latitude, double longitude) {
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+            throw new InvalidDataException("Coordenadas do local inválidas");
+        }
         this.latitude = latitude;
         this.longitude = longitude;
     }
-
-    public String getId() { return id; }
-    public String getNome() { return nome; }
-    public String getTipo() { return tipo; }
-    public String getEdificio() { return edificio; }
-    public double getLatitude() { return latitude; }
-    public double getLongitude() { return longitude; }
 }
