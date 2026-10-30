@@ -87,12 +87,20 @@ public final class JsonHandler {
         );
     }
 
-    // Documento de localizacoes/{uid}.
+    // Documento de localizacoes/{uid}. A hora (atualizadoEm) fica null se não existir.
     public static LocalizacaoDTO json2LocalizacaoDTO(JSONObject documento) throws JSONException {
         JSONObject campos = documento.getJSONObject("fields");
+
+        String atualizadoEm = null;
+        JSONObject hora = campos.optJSONObject("atualizadoEm");
+        if (hora != null && hora.has("timestampValue")) {
+            atualizadoEm = hora.getString("timestampValue");
+        }
+
         return new LocalizacaoDTO(
                 lerNumero(campos.getJSONObject("latitude")),
-                lerNumero(campos.getJSONObject("longitude"))
+                lerNumero(campos.getJSONObject("longitude")),
+                atualizadoEm
         );
     }
 
@@ -173,11 +181,14 @@ public final class JsonHandler {
         return new JSONObject().put("fields", campos);
     }
 
-    // Posição do aluno: { "fields": { "latitude": {...}, "longitude": {...} } }
+    // Posição do aluno: { "fields": { "latitude": {...}, "longitude": {...}, "atualizadoEm": {...} } }
     public static JSONObject localizacaoDTO2Json(LocalizacaoDTO dto) throws JSONException {
         JSONObject campos = new JSONObject()
                 .put("latitude", new JSONObject().put("doubleValue", dto.getLatitude()))
                 .put("longitude", new JSONObject().put("doubleValue", dto.getLongitude()));
+        if (dto.getAtualizadoEm() != null) {
+            campos.put("atualizadoEm", new JSONObject().put("timestampValue", dto.getAtualizadoEm()));
+        }
         return new JSONObject().put("fields", campos);
     }
 

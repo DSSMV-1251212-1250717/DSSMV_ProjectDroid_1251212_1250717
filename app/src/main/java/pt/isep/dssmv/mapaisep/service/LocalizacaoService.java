@@ -8,6 +8,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.time.DateTimeException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,8 +46,10 @@ public class LocalizacaoService {
             public void onSuccess(String idToken) {
                 new Thread(() -> {
                     try {
-                        // DTO -> JSON (JsonHandler).
-                        JSONObject corpo = JsonHandler.localizacaoDTO2Json(new LocalizacaoDTO(latitude, longitude));
+                        // DTO -> JSON (JsonHandler). Vai com a hora do envio,
+                        // para os amigos saberem se a posição ainda é atual.
+                        LocalizacaoDTO dto = new LocalizacaoDTO(latitude, longitude, Instant.now().toString());
+                        JSONObject corpo = JsonHandler.localizacaoDTO2Json(dto);
 
                         networkHandler.enviarPedido(
                                 FirebaseConfig.FIRESTORE_URL + "/localizacoes/" + uid,
@@ -110,8 +114,8 @@ public class LocalizacaoService {
                         mainHandler.post(() -> callback.onResult(null, SessaoExpiradaException.CODIGO));
                     } catch (IOException e) {
                         mainHandler.post(() -> callback.onResult(null, "NETWORK_ERROR"));
-                    } catch (JSONException | IllegalArgumentException e) {
-                        // Formato errado, número mal escrito ou posição recusada pelo Amigo.
+                    } catch (JSONException | IllegalArgumentException | DateTimeException e) {
+                        // Formato errado, número ou hora mal escritos, ou posição recusada pelo Amigo.
                         mainHandler.post(() -> callback.onResult(null, "INVALID_LOCATION_DATA"));
                     }
                 }).start();

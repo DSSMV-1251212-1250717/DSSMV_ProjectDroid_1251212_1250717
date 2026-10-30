@@ -1,5 +1,7 @@
 package pt.isep.dssmv.mapaisep.model;
 
+import java.time.Instant;
+
 import pt.isep.dssmv.mapaisep.exceptions.InvalidDataException;
 
 // Um aluno da lista de amigos do aluno com sessão iniciada.
@@ -13,6 +15,7 @@ public class Amigo {
     private String numero;
     private Double latitude;
     private Double longitude;
+    private Instant posicaoAtualizadaEm;   // quando o amigo enviou a posição (null se não se sabe)
 
     public Amigo(String uid, String nome, String numero) {
         setUid(uid);
@@ -72,8 +75,29 @@ public class Amigo {
         this.longitude = longitude;
     }
 
+    // Posição com a hora em que o amigo a enviou.
+    public void definirPosicao(double latitude, double longitude, Instant atualizadaEm) {
+        definirPosicao(latitude, longitude);
+        this.posicaoAtualizadaEm = atualizadaEm;
+    }
+
+    // Quando o amigo enviou a posição (null se não se sabe).
+    public Instant getPosicaoAtualizadaEm() {
+        return posicaoAtualizadaEm;
+    }
+
     // true se o amigo já partilhou a posição.
     public boolean temPosicao() {
         return latitude != null && longitude != null;
+    }
+
+    // true se a posição foi enviada há menos de validadeMs.
+    // Uma posição sem hora não conta: pode ter dias e o amigo já não estar lá.
+    public boolean temPosicaoRecente(Instant agora, long validadeMs) {
+        if (!temPosicao() || posicaoAtualizadaEm == null) {
+            return false;
+        }
+        long idadeMs = agora.toEpochMilli() - posicaoAtualizadaEm.toEpochMilli();
+        return idadeMs < validadeMs;
     }
 }
