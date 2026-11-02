@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import pt.isep.dssmv.mapaisep.R;
+import pt.isep.dssmv.mapaisep.service.DetetorPresenca;
 import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
 import pt.isep.dssmv.mapaisep.helper.SessaoHelper;
 import pt.isep.dssmv.mapaisep.service.PerfilService;
@@ -64,12 +65,21 @@ public class PerfilActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Um ecrã da app ficou visível: o detetor da biblioteca fica ligado.
+        DetetorPresenca.obter(this).ecraVisivel();
+    }
+
     // Ao sair deste ecrã, regista a hora: a app esteve em uso até agora
     // (conta para a sessão de 2 minutos, verificada pelo MenuPrincipalActivity).
     @Override
     protected void onPause() {
         super.onPause();
         SessaoHelper.registarAtividade(this);
+        // Este ecrã deixou de estar visível: se mais nenhum ficar, o detetor da biblioteca desliga-se.
+        DetetorPresenca.obter(this).ecraEscondido();
     }
 
     private void configurarSeletorFoto() {

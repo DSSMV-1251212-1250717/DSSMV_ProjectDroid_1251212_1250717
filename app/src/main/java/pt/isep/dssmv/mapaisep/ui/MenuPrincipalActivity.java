@@ -25,6 +25,7 @@ import pt.isep.dssmv.mapaisep.R;
 import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
 import pt.isep.dssmv.mapaisep.model.Aula;
 import pt.isep.dssmv.mapaisep.service.AuthService;
+import pt.isep.dssmv.mapaisep.service.DetetorPresenca;
 import pt.isep.dssmv.mapaisep.service.HorarioService;
 import pt.isep.dssmv.mapaisep.helper.SessaoHelper;
 import pt.isep.dssmv.mapaisep.LoginActivity;
@@ -34,7 +35,7 @@ import pt.isep.dssmv.mapaisep.LoginActivity;
 //   MapaCampus            -> campus, biblioteca e sala da próxima aula no mapa
 //   LocalizacaoAluno      -> foto do aluno no mapa e envio da posição dele
 //   AmigosNoMapa          -> posição dos amigos (de 5 em 5 segundos)
-//   CartaoBiblioteca      -> lotação e deteção de presença por Wi-Fi
+//   CartaoBiblioteca      -> lotação da biblioteca (o detetor de presença é um só para a app: DetetorPresenca)
 public class MenuPrincipalActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private final MapaCampus mapaCampus = new MapaCampus(this);
@@ -93,7 +94,7 @@ public class MenuPrincipalActivity extends AppCompatActivity implements OnMapRea
 
             if (LocalizacaoAluno.temLocalizacaoPrecisa(this)) {
                 // Já pode ver as redes Wi-Fi: liga o detetor e o cartão passa a mostrar o número.
-                cartaoBiblioteca.iniciar();
+                DetetorPresenca.obter(this).iniciar();
                 cartaoBiblioteca.carregarLotacao();
             } else if (pedidoDaBiblioteca
                     && !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -286,15 +287,23 @@ public class MenuPrincipalActivity extends AppCompatActivity implements OnMapRea
             localizacao.parar();
         }
 
-        // App em fundo: pára os scans de Wi-Fi.
-        if (cartaoBiblioteca != null) {
-            cartaoBiblioteca.parar();
-        }
+        // Este ecrã deixou de estar visível: se mais nenhum ficar, o detetor da biblioteca desliga-se.
+        DetetorPresenca.obter(this).ecraEscondido();
+    }
+
+    @Override
+    protected void onDestroy() {
+        // O cartão deste ecrã deixa de existir: o detetor deixa de o avisar no fim de cada ciclo.
+        DetetorPresenca.obter(this).definirAoTerminarCiclo(null);
+        super.onDestroy();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Um ecrã da app ficou visível: o detetor da biblioteca fica ligado.
+        DetetorPresenca.obter(this).ecraVisivel();
 
         // Consulta se há um idToken em memória (dado pelo Firebase quando se inicia sessão, para provar
         // quem somos) e se a sessão ainda é válida (menos de 2 minutos sem usar a app). Se faltar algum, volta ao login.
@@ -306,9 +315,6 @@ public class MenuPrincipalActivity extends AppCompatActivity implements OnMapRea
 
         SessaoHelper.registarAtividade(this);
         localizacao.ativar();
-
-        // App aberta: começa os scans de Wi-Fi (só com localização precisa).
-        cartaoBiblioteca.iniciar();
 
         if (mapaAberto) {
             amigosNoMapa.iniciar();

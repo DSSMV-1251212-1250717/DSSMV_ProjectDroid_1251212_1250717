@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import pt.isep.dssmv.mapaisep.R;
+import pt.isep.dssmv.mapaisep.service.DetetorPresenca;
 import pt.isep.dssmv.mapaisep.adapter.ListViewAdapterAmigos;
 import pt.isep.dssmv.mapaisep.exceptions.DuplicatedDataException;
 import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
@@ -87,6 +88,13 @@ public class AmigosActivity extends AppCompatActivity {
         carregarAmigos();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Um ecrã da app ficou visível: o detetor da biblioteca fica ligado.
+        DetetorPresenca.obter(this).ecraVisivel();
+    }
+
     // Ao sair deste ecrã, regista a hora: a app esteve em uso até agora.
     // Sem isto, o MenuPrincipalActivity só conhecia a hora em que este ecrã foi aberto
     // e, passados 2 minutos aqui, mandava o aluno para o login ao voltar.
@@ -94,6 +102,8 @@ public class AmigosActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         SessaoHelper.registarAtividade(this);
+        // Este ecrã deixou de estar visível: se mais nenhum ficar, o detetor da biblioteca desliga-se.
+        DetetorPresenca.obter(this).ecraEscondido();
     }
 
     private void carregarAmigos() {

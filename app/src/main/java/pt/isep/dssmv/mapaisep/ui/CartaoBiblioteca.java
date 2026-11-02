@@ -11,15 +11,14 @@ import pt.isep.dssmv.mapaisep.exceptions.SessaoExpiradaException;
 import pt.isep.dssmv.mapaisep.service.BibliotecaService;
 import pt.isep.dssmv.mapaisep.service.DetetorPresenca;
 
-// Cartão da biblioteca na página Início: mostra a lotação e liga o detetor de presença por Wi-Fi.
-// O MenuPrincipalActivity cria-o no onCreate e chama iniciar() / parar() / carregarLotacao().
+// Cartão da biblioteca na página Início: mostra a lotação e o botão "Ativar localização".
+// O MenuPrincipalActivity cria-o no onCreate e chama carregarLotacao().
+// O detetor de presença não é do cartão: é um só para a app toda (DetetorPresenca.obter),
+// ligado e desligado pelos ecrãs. O cartão só lhe pede que o avise no fim de cada ciclo.
 public class CartaoBiblioteca {
     private final AppCompatActivity activity;
     private final TextView textoBiblioteca;
     private final Button btnPermissao;
-
-    // Deteta, pelo Wi-Fi, se o aluno está na biblioteca e atualiza a presença no Firestore.
-    private final DetetorPresenca detetorPresenca;
 
     // pedirPermissao: o que fazer quando se carrega em "Ativar localização"
     // (o pedido de permissões tem de ficar na Activity, por isso vem de lá).
@@ -34,7 +33,7 @@ public class CartaoBiblioteca {
         btnPermissao.setOnClickListener(v -> pedirPermissao.run());
 
         // No fim de cada ciclo do detetor, volta a pedir a lotação (o número no ecrã acompanha quem entra e sai).
-        detetorPresenca = new DetetorPresenca(activity, new Runnable() {
+        DetetorPresenca.obter(activity).definirAoTerminarCiclo(new Runnable() {
             @Override
             public void run() {
                 carregarLotacao();
@@ -42,20 +41,12 @@ public class CartaoBiblioteca {
         });
     }
 
-    // App aberta: começa os scans de Wi-Fi (ver as redes precisa da localização precisa).
-    public void iniciar() {
-        if (LocalizacaoAluno.temLocalizacaoPrecisa(activity)) {
-            detetorPresenca.iniciar();
-        }
-    }
-
-    // App em fundo: pára os scans de Wi-Fi.
-    public void parar() {
-        detetorPresenca.parar();
-    }
-
     // Pede a lotação ao BibliotecaService e mostra-a no cartão.
     public void carregarLotacao() {
+        // O ecrã principal já fechou: não há cartão onde mostrar.
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
         // Sem localização precisa: mostra a mensagem e o botão em vez da lotação.
         // A lista das redes Wi-Fi à volta diz onde a pessoa está, por isso o Android só a mostra
         // a uma app com a permissão de localização precisa (ACCESS_FINE_LOCATION); com a aproximada,
