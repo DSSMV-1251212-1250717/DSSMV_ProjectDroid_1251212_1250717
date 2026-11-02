@@ -30,6 +30,7 @@ public class BibliotecaService {
 
     public void obterLotacao(Context context, BibliotecaCallback callback) {
         // Sem sessão: entrega o erro na main thread e não faz o pedido.
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         if (AuthService.getCurrentUid() == null) {
             mainHandler.post(() -> callback.onResult(null, SessaoExpiradaException.CODIGO));
             return;
@@ -39,6 +40,7 @@ public class BibliotecaService {
         // Vai no cabeçalho "Authorization: Bearer"; sem ele, o Firestore recusa (401/403).
         // O AuthService entrega um token válido e renova-o se estiver quase a expirar (dura 1 hora).
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 pedirLotacao(idToken, callback);

@@ -42,6 +42,7 @@ public class AmigosService {
     // (ficheiros, SharedPreferences, strings, abrir ecrãs, GPS/Wi-Fi).
     // Aqui só é passado ao AuthService, que o usa para guardar o token.
     public void listarAmigos(Context context, ListaCallback callback) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uidAtual = AuthService.getCurrentUid();
         if (uidAtual == null) {
             mainHandler.post(() -> callback.onResult(null, SessaoExpiradaException.CODIGO));
@@ -56,6 +57,7 @@ public class AmigosService {
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
 
             // Chamado pelo AuthService, na main thread, com o token pronto a usar.
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 // Os pedidos HTTP demoram; na main thread o ecrã congelava
@@ -117,6 +119,7 @@ public class AmigosService {
             mainHandler.post(() -> callback.onResult("INVALID_STUDENT_NUMBER"));
             return;
         }
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uidAtual = AuthService.getCurrentUid();
         if (uidAtual == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
@@ -125,6 +128,7 @@ public class AmigosService {
 
         // 1. Pedir o token.
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {
@@ -175,6 +179,7 @@ public class AmigosService {
     }
 
     public void removerAmigo(Context context, Amigo amigo, OperacaoCallback callback) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uidAtual = AuthService.getCurrentUid();
         if (uidAtual == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
@@ -183,6 +188,7 @@ public class AmigosService {
 
         // 1. Pedir o token.
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {

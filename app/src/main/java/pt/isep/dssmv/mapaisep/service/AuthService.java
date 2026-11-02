@@ -24,21 +24,21 @@ public class AuthService {
     private static final long TOKEN_EXPIRY_MARGIN_MS = 60 * 1000L;
 
     // A sessão usada pelos serviços enquanto a aplicação está aberta.
+    // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
     private static String currentUid;
+    // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
     private static String currentIdToken;
     private static String currentRefreshToken;
     private static long currentIdTokenExpiresAt;
 
     private final NetworkHandler networkHandler = new NetworkHandler();
+
+    // Handler ligado à fila de tarefas (Looper) da main thread: o post(...) põe lá uma tarefa
+    // e a main thread corre-a quando estiver livre. É assim que o resultado volta ao ecrã.
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface LoginCallback {
-        void onSuccess(
-                String uid,
-                String idToken,
-                String refreshToken,
-                long idTokenExpiresAt
-        );
+        void onSuccess(String uid, String idToken, String refreshToken, long idTokenExpiresAt);
 
         void onError(String errorCode);
     }

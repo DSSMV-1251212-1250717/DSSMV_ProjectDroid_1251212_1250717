@@ -193,6 +193,7 @@ public class LocalizacaoAluno {
 
     // Pede a foto do aluno ao Firestore e transforma-a no ícone do marcador (contorno azul).
     private void carregarIconeMinhaFoto() {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         new PerfilService().obterFoto(context, AuthService.getCurrentUid(), fotoBase64 -> {
             iconeMinhaFoto = IconeFotoHelper.criar(fotoBase64, Color.rgb(25, 118, 210));
             desenharMinhaLocalizacao();

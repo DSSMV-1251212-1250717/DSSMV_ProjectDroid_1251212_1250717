@@ -57,6 +57,10 @@ public class CartaoBiblioteca {
     // Pede a lotação ao BibliotecaService e mostra-a no cartão.
     public void carregarLotacao() {
         // Sem localização precisa: mostra a mensagem e o botão em vez da lotação.
+        // A lista das redes Wi-Fi à volta diz onde a pessoa está, por isso o Android só a mostra
+        // a uma app com a permissão de localização precisa (ACCESS_FINE_LOCATION); com a aproximada,
+        // a lista vem vazia e o telemóvel deste aluno não consegue contar para a lotação.
+        // Escolha da app: só vê a lotação quem também contribui para ela.
         if (!LocalizacaoAluno.temLocalizacaoPrecisa(activity)) {
             textoBiblioteca.setText(R.string.biblioteca_sem_permissao);
             btnPermissao.setVisibility(View.VISIBLE);

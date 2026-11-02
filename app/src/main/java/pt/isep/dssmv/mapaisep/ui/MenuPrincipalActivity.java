@@ -55,6 +55,8 @@ public class MenuPrincipalActivity extends AppCompatActivity implements OnMapRea
         super.onCreate(savedInstanceState);
 
         // Confirma se o aluno tem sessão ativa.
+        // Consulta se há um idToken em memória (dado pelo Firebase quando se inicia sessão, para provar
+        // quem somos) e se a sessão ainda é válida (menos de 2 minutos sem usar a app). Se faltar algum, volta ao login.
         if (AuthService.getIdToken() == null
                 || !SessaoHelper.sessaoValida(this)) {
 
@@ -294,6 +296,8 @@ public class MenuPrincipalActivity extends AppCompatActivity implements OnMapRea
     protected void onResume() {
         super.onResume();
 
+        // Consulta se há um idToken em memória (dado pelo Firebase quando se inicia sessão, para provar
+        // quem somos) e se a sessão ainda é válida (menos de 2 minutos sem usar a app). Se faltar algum, volta ao login.
         if (AuthService.getIdToken() == null
                 || !SessaoHelper.sessaoValida(this)) {
             terminarSessao();

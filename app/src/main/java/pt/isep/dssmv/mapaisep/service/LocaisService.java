@@ -32,6 +32,7 @@ public class LocaisService {
 
     public void obterLocais(Context context, LocaisCallback callback) {
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {

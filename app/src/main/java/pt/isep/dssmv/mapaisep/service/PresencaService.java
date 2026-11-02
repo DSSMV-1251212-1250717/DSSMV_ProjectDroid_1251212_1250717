@@ -32,6 +32,7 @@ public class PresencaService {
     // PATCH presencas/{uid}: cria o documento se não existir, ou renova a hora se já existir.
     public void marcarPresenca(Context context, PresencaCallback callback) {
         // Sessão: o uid diz qual é o documento.
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uid = AuthService.getCurrentUid();
         if (uid == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
@@ -40,6 +41,7 @@ public class PresencaService {
 
         // Token válido (renovado se estiver quase a expirar) e só depois o pedido.
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 enviarMarcacao(uid, idToken, callback);
@@ -87,6 +89,7 @@ public class PresencaService {
 
     // DELETE presencas/{uid}: apaga o documento, o aluno deixa de contar como presente.
     public void removerPresenca(Context context, PresencaCallback callback) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uid = AuthService.getCurrentUid();
         if (uid == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
@@ -94,6 +97,7 @@ public class PresencaService {
         }
 
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 enviarRemocao(uid, idToken, callback);

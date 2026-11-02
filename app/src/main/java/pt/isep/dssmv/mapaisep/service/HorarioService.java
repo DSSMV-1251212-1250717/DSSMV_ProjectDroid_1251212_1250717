@@ -40,6 +40,7 @@ public class HorarioService {
     // Pede as aulas de hoje do aluno com sessão iniciada.
     // O uid do aluno com sessão iniciada diz qual é o documento a ler.
     public void obterAulasHoje(Context context, HorarioCallback callback) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         obterAulasHoje(context, AuthService.getCurrentUid(), callback);
     }
 
@@ -52,6 +53,7 @@ public class HorarioService {
 
         // Antes da consulta ao Firestore, confirma que o token ainda serve.
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 obterAulasHojeComToken(uid, idToken, callback);

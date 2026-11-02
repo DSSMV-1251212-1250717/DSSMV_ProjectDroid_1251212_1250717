@@ -36,12 +36,14 @@ public class LocalizacaoService {
      * PATCH altera latitude e longitude sem criar uma lista de posições antigas.
      */
     public void atualizarMinhaLocalizacao(Context context, double latitude, double longitude) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uid = AuthService.getCurrentUid();
         if (uid == null) {
             return;
         }
 
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {
@@ -77,6 +79,7 @@ public class LocalizacaoService {
             LocalizacoesCallback callback
     ) {
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {

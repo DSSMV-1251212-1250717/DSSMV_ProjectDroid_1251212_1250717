@@ -15,7 +15,9 @@ public final class SessaoHelper {
     private static final String KEY_SESSION_ACTIVE = "session_active";
     private static final String KEY_LAST_ACTIVE_AT = "last_active_at";
     private static final String KEY_LAST_PAGE_IS_MAP = "last_page_is_map";
+    // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
     private static final String KEY_UID = "uid";
+    // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
     private static final String KEY_ID_TOKEN = "id_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
     private static final String KEY_ID_TOKEN_EXPIRES_AT = "id_token_expires_at";
@@ -27,6 +29,8 @@ public final class SessaoHelper {
         // Esta classe só tem métodos estáticos.
     }
 
+    // Abre o ficheiro de preferências desta app. O getSharedPreferences é um método do Context
+    // (é o Context que sabe a que app pertence o ficheiro); por isso todos os métodos recebem um.
     private static SharedPreferences preferencias(Context context) {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
@@ -67,6 +71,8 @@ public final class SessaoHelper {
         long ultimaAtividade = prefs.getLong(KEY_LAST_ACTIVE_AT, 0L);
         long tempoPassado = System.currentTimeMillis() - ultimaAtividade;
 
+        // Devolve true se a hora existe (> 0) E não está no futuro (>= 0)
+        // E passaram menos de 2 minutos (< SESSION_TIMEOUT_MS). Basta uma falhar para dar false.
         return ultimaAtividade > 0L && tempoPassado >= 0L
                 && tempoPassado < SESSION_TIMEOUT_MS;
     }
@@ -81,6 +87,9 @@ public final class SessaoHelper {
         return preferencias(context).getBoolean(KEY_LAST_PAGE_IS_MAP, false);
     }
 
+    // Os obter... recebem um Context porque leem o ficheiro de preferências da app, e para abrir
+    // um ficheiro da app é preciso um Context: o objeto através do qual o código pede coisas ao
+    // Android sobre a app (ficheiros, preferências, textos, abrir ecrãs, serviços do telemóvel).
     public static String obterUid(Context context) {
         return preferencias(context).getString(KEY_UID, null);
     }

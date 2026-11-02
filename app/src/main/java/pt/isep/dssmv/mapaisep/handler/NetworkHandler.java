@@ -43,7 +43,12 @@ public class NetworkHandler {
         HttpURLConnection connection = null;
 
         try {
+            // URL: classe do Java que guarda o endereço separado nas suas partes
+            // (protocolo https, servidor, caminho e parâmetros). Se o texto não for
+            // um endereço válido, lança logo um erro.
             URL url = new URL(endereco);
+            // Prepara a ligação a esse endereço (ainda não liga à internet).
+            // O cast dá acesso aos métodos de HTTP (setRequestMethod, getResponseCode).
             connection = (HttpURLConnection) url.openConnection();
 
             // O HttpURLConnection não aceita PATCH (lança ProtocolException).
@@ -56,6 +61,9 @@ public class NetworkHandler {
                 connection.setRequestMethod(metodo);
             }
 
+            // Tempo máximo para ligar (10 s) e para esperar pela resposta (10 s).
+            // Se o Firebase não responder, a app não fica presa: passado esse tempo sai uma
+            // IOException (SocketTimeoutException), o service apanha-a e avisa o ecrã (NETWORK_ERROR).
             connection.setConnectTimeout(TIMEOUT_MS);
             connection.setReadTimeout(TIMEOUT_MS);
             connection.setRequestProperty("Accept", "application/json");

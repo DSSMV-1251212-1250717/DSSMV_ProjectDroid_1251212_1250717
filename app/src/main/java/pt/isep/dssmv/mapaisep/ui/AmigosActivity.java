@@ -48,6 +48,7 @@ public class AmigosActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         if (AuthService.getCurrentUid() == null || !SessaoHelper.sessaoValida(this)) {
             AuthService.logout();
             SessaoHelper.terminarSessao(this);

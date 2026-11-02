@@ -32,6 +32,7 @@ public class PerfilService {
     }
 
     public void obterPerfil(Context context, PerfilCallback callback) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uid = AuthService.getCurrentUid();
         if (uid == null) {
             callback.onResult(null, null, null, SessaoExpiradaException.CODIGO);
@@ -39,6 +40,7 @@ public class PerfilService {
         }
 
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {
@@ -74,6 +76,7 @@ public class PerfilService {
 
     // Guarda a foto (já em texto Base64) no documento alunos/{uid}, campo fotoBase64.
     public void guardarFoto(Context context, String fotoBase64, FotoCallback callback) {
+        // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uid = AuthService.getCurrentUid();
         if (uid == null) {
             mainHandler.post(() -> callback.onResult(SessaoExpiradaException.CODIGO));
@@ -82,6 +85,7 @@ public class PerfilService {
 
         // 1. Pedir o token.
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 // O envio demora: corre numa thread secundária.
@@ -132,6 +136,7 @@ public class PerfilService {
     // Vai buscar a foto de qualquer aluno (por exemplo, um amigo): GET a alunos/{uid}.
     public void obterFoto(Context context, String uid, FotoAlunoCallback callback) {
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
+            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {

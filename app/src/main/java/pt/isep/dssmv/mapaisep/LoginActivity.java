@@ -36,6 +36,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Se usamos a app há menos de 2 minutos, não pede o login outra vez.
+        // sessaoValida: a sessão guardada no telemóvel tem menos de 2 minutos de inatividade?
+        // restaurarSessao: volta a pôr o uid e os tokens guardados na memória do AuthService.
+        // Com &&, o restaurarSessao só corre se o sessaoValida der true.
         if (SessaoHelper.sessaoValida(this) && AuthService.restaurarSessao(this)) {
             SessaoHelper.registarAtividade(this);
             startActivity(new Intent(this, MenuPrincipalActivity.class));
@@ -50,6 +53,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Vai buscar os elementos do layout.
+        // TextView: componente do Android para mostrar texto. EditText: subclasse do TextView
+        // em que o utilizador pode escrever. Button: também deriva do TextView.
+        // O errorLogin é um TextView com a mensagem de erro; no XML começa escondido (gone).
         Button btnLogin = findViewById(R.id.btnLogin);
         EditText inputUser = findViewById(R.id.inputUtilizador);
         EditText inputPassword = findViewById(R.id.inputPassword);
@@ -86,7 +92,10 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             // Lê o número e a password.
+            // getText(): o texto escrito na caixa (tipo Editable do Android, ainda não é String).
+            // toString(): converte-o em String. trim(): tira os espaços do início e do fim.
             String studentNumber = inputUser.getText().toString().trim();
+            // A password não leva trim(): um espaço pode fazer parte dela.
             String password = inputPassword.getText().toString();
 
             // O número tem de ter exatamente 7 dígitos.
@@ -94,6 +103,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 errorLogin.setText(R.string.login_error_student);
                 errorLogin.setVisibility(View.VISIBLE);
+                // return: sai deste método do clique; o resto não corre. O controlo volta ao
+                // código do Android que chamou este método, que fica à espera do próximo toque.
                 return;
             }
 
@@ -122,7 +133,9 @@ public class LoginActivity extends AppCompatActivity {
             // Esconde erros anteriores.
             errorLogin.setVisibility(View.GONE);
 
-            // Bloqueia o formulário enquanto espera pelo Firebase.
+            // Bloqueia o botão e as caixas enquanto o Firebase não responde: dois cliques seguidos
+            // não fazem dois pedidos. O botão passa a dizer "A entrar…". O onError volta a ativá-los;
+            // se o Firebase não responder, o tempo limite do NetworkHandler (10 s) acaba por chamar o onError.
             btnLogin.setEnabled(false);
             inputUser.setEnabled(false);
             inputPassword.setEnabled(false);
@@ -143,6 +156,8 @@ public class LoginActivity extends AppCompatActivity {
              *                         ↓
              * O código definido na LoginActivity abre o menu ou mostra o erro
              */
+            // O login() arranca uma thread secundária e termina logo: este método do clique acaba
+            // e o ecrã continua a responder enquanto se espera pelo Firebase.
             authService.login(
                     studentNumber,
                     password,
@@ -168,8 +183,12 @@ public class LoginActivity extends AppCompatActivity {
                             // Apaga a password do campo.
                             inputPassword.setText("");
 
-                            // Guarda só os dados da sessão do Firebase (2 minutos);
-                            // a password nunca fica guardada no telemóvel.
+                            // Guarda a sessão no ficheiro de preferências da app (SharedPreferences):
+                            // sessão ativa, hora atual, uid, idToken, refreshToken e quando o idToken expira.
+                            // Se a app abrir outra vez em menos de 2 minutos, o onCreate lê estes valores
+                            // e entra sem login. A password nunca fica guardada no telemóvel.
+                            // LoginActivity.this vai como Context: uma Activity é um Context
+                            // (a AppCompatActivity herda de Context), por isso serve para abrir o ficheiro.
                             SessaoHelper.iniciarSessao(
                                     LoginActivity.this,
                                     uid,
@@ -185,13 +204,16 @@ public class LoginActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG
                             ).show();
 
-                            // Pedido para abrir o MenuPrincipalActivity.
+                            // Intent: só a descrição do pedido "abrir o MenuPrincipalActivity a partir
+                            // deste ecrã", como um formulário preenchido. Criá-lo não abre nada.
+                            // LoginActivity.this e não this: aqui dentro, this é o LoginCallback, não o ecrã.
                             Intent intent = new Intent(
                                     LoginActivity.this,
                                     MenuPrincipalActivity.class
                             );
 
-                            // Abre o ecrã principal.
+                            // startActivity: entrega o pedido (o Intent) ao Android, que cria o
+                            // MenuPrincipalActivity e chama o onCreate dele.
                             startActivity(intent);
 
                             // Fecha o ecrã de login.
