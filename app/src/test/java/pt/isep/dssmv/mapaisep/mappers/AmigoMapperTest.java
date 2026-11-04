@@ -8,10 +8,7 @@ import pt.isep.dssmv.mapaisep.dto.AlunoDTO;
 import pt.isep.dssmv.mapaisep.dto.AmigoDTO;
 import pt.isep.dssmv.mapaisep.model.Amigo;
 
-// Testes unitários: correm no computador (JUnit), sem abrir a app nem o emulador.
-// Cada método @Test usa o nosso código e confirma o resultado com assert:
-// verde = passou, vermelho = falhou (e o JUnit diz o que esperava e o que recebeu).
-//
+// Testes unitários (JUnit): correm no computador; verde = passou, vermelho = falhou.
 // Testa as conversões do AmigoMapper: AmigoDTO -> Amigo, AlunoDTO -> Amigo e Amigo -> AmigoDTO.
 public class AmigoMapperTest {
 

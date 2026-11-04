@@ -141,21 +141,6 @@ public class LoginActivity extends AppCompatActivity {
             inputPassword.setEnabled(false);
             btnLogin.setText(R.string.login_loading);
 
-            /*
-             * LoginActivity cria o objeto com onSuccess e onError
-             *                         ↓
-             * Passa esse objeto ao AuthService
-             *                         ↓
-             * AuthService faz o pedido numa thread secundária
-             *                         ↓
-             * Firebase responde
-             *                         ↓
-             * AuthService agenda a chamada através do Handler
-             *                         ↓
-             * Main thread executa onSuccess ou onError desse objeto
-             *                         ↓
-             * O código definido na LoginActivity abre o menu ou mostra o erro
-             */
             // O login() arranca uma thread secundária e termina logo: este método do clique acaba
             // e o ecrã continua a responder enquanto se espera pelo Firebase.
             authService.login(

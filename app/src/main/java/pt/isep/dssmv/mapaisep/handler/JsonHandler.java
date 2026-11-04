@@ -13,14 +13,9 @@ import pt.isep.dssmv.mapaisep.dto.LoginDTO;
 import pt.isep.dssmv.mapaisep.dto.PresencaDTO;
 import pt.isep.dssmv.mapaisep.dto.SessaoDTO;
 
-// Tudo o que lê ou escreve JSON de dados fica aqui, nos dois sentidos:
-//   JSON -> DTO  (json2...): quando a resposta do Firebase chega;
-//   DTO  -> JSON (...2Json): quando a app envia dados ao Firebase.
-// Só esta classe conhece o formato do Firestore ("fields", "stringValue", "doubleValue"...).
-// Os services não escrevem JSON de dados à mão; os mappers não sabem o que é JSON.
+// Converte JSON -> DTO (json2...) e DTO -> JSON (...2Json). Só esta classe conhece o
+// formato do Firestore ("fields", "stringValue"...); as pesquisas (runQuery) ficam nos services.
 // É o papel do JsonHandler do exemplo dos professores (SchoolDiskClient).
-// As pesquisas ao Firestore (runQuery) não estão aqui: não são dados, dizem ao Firebase
-// o que procurar, por isso ficam nos services.
 public final class JsonHandler {
 
     private JsonHandler() {

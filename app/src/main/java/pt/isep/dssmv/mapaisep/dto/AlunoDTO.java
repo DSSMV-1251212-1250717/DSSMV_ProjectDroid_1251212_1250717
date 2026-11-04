@@ -1,11 +1,7 @@
 package pt.isep.dssmv.mapaisep.dto;
 
-/**
- * Documento alunos/{uid}, tal como vem do Firestore.
- * Um campo que não exista no documento fica null (por exemplo, a foto).
- */
-// Usado em: horário (turma), perfil (número, turma e foto) e adicionar amigo (nome e número).
-// Também serve para enviar a foto nova (o JsonHandler escreve só o campo fotoBase64).
+// Documento alunos/{uid}, tal como vem do Firestore; um campo que não exista fica null (ex.: a foto).
+// Usado no horário, no perfil, ao adicionar amigo e para enviar a foto nova.
 public final class AlunoDTO {
     private final String uid;
     private final String nome;

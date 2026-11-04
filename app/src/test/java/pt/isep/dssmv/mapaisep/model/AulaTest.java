@@ -11,10 +11,7 @@ import org.junit.Test;
 
 import pt.isep.dssmv.mapaisep.exceptions.InvalidDataException;
 
-// Testes unitários: correm no computador (JUnit), sem abrir a app nem o emulador.
-// Cada método @Test usa o nosso código e confirma o resultado com assert:
-// verde = passou, vermelho = falhou (e o JUnit diz o que esperava e o que recebeu).
-//
+// Testes unitários (JUnit): correm no computador; verde = passou, vermelho = falhou.
 // Testa as validações da Aula (Information Expert: é a Aula que valida os seus dados).
 public class AulaTest {
 
