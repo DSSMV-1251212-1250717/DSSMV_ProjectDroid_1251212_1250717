@@ -90,6 +90,8 @@ public class AmigosActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        // onResume: o Android chama-o uma vez, no momento em que este ecrã passa a estar à vista.
+        //metodo da classe mãe(Activity) --> que a AmigosActivity rescreve
         super.onResume();
         // Um ecrã da app ficou visível: o detetor da biblioteca fica ligado.
         DetetorPresenca.obter(this).ecraVisivel();
@@ -100,6 +102,8 @@ public class AmigosActivity extends AppCompatActivity {
     // e, passados 2 minutos aqui, mandava o aluno para o login ao voltar.
     @Override
     protected void onPause() {
+        // onPause: o Android chama-o uma vez, no momento em que este ecrã deixa de estar à vista.
+        //metodo da classe mãe(Activity) --> que a AmigosActivity rescreve
         super.onPause();
         SessaoHelper.registarAtividade(this);
         // Este ecrã deixou de estar visível: se mais nenhum ficar, o detetor da biblioteca desliga-se.
