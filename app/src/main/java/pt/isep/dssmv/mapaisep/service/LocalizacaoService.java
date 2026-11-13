@@ -36,6 +36,8 @@ public class LocalizacaoService {
      * PATCH altera latitude e longitude sem criar uma lista de posições antigas.
      */
     public void atualizarMinhaLocalizacao(Context context, double latitude, double longitude) {
+        //Envia a nossa posição: um PATCH em localizacoes/{nosso uid}. PARA O FIREBASE
+        //o android descobre a nossa localizacao em Localizacao Auno linha 142
         // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         String uid = AuthService.getCurrentUid();
         if (uid == null) {
@@ -74,6 +76,7 @@ public class LocalizacaoService {
 
     /** Obtém a última posição de cada amigo que decidiu partilhá-la. */
     public void obterLocalizacoesAmigos(
+            //Vai buscar a posição dos amigos: um GET em localizacoes/{uid do amigo}, para cada um.
             Context context,
             List<Amigo> amigos,
             LocalizacoesCallback callback

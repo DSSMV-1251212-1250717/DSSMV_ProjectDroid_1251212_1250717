@@ -113,6 +113,8 @@ public class HorarioService {
                     }
 
                     JSONObject documento = item.getJSONObject("document");
+                    //json le se de dentro para fora
+                    //vamos buscar oque ta dentro do document
 
                     // JSON -> AulaDTO (JsonHandler): os dados ficam como na API, por exemplo "09:00" em texto.
                     AulaDTO dto = JsonHandler.json2AulaDTO(documento);

@@ -32,6 +32,7 @@ public class MapaCampus {
 
     // Limites do campus (a câmara não sai daqui).
     private static final LatLngBounds CAMPUS_ISEP = new LatLngBounds(new LatLng(41.1770955, -8.6091907), new LatLng(41.1795948, -8.6056156));
+    //CAMPUS_ISEP é um retângulo
 
     // Pontos do contorno do campus.
     private static final List<LatLng> CONTORNO_ISEP = Arrays.asList(
@@ -127,6 +128,7 @@ public class MapaCampus {
             Local local = locaisCampus.get(i);
             if (local.getId().equals("Biblioteca")) {
                 marcadorBiblioteca = mapa.addMarker(new MarkerOptions()
+                        //add Marker é um metodo do GOogleMap que poe um marcador
                         .position(new LatLng(local.getLatitude(), local.getLongitude()))
                         .title(local.getNome())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
@@ -138,6 +140,7 @@ public class MapaCampus {
     // Obtém as salas e a biblioteca guardadas na coleção Firestore locais.
     private void carregarLocais() {
         locaisService.obterLocais(context, (resultado, erro) -> {
+            //preenche locaisCampus;
             if (mapa == null) {
                 return;
             }
@@ -167,11 +170,11 @@ public class MapaCampus {
         // Escolher a próxima aula é lógica sobre aulas: está no HorarioService.
         Aula proxima = HorarioService.obterProximaAula(aulasHoje, java.time.LocalTime.now());
 
-        List<Marker> marcadoresAntigos = new ArrayList<>(marcadoresLocais.values());
-        for (int i = 0; i < marcadoresAntigos.size(); i++) {
-            marcadoresAntigos.get(i).remove();
-        }
-        marcadoresLocais.clear();
+            List<Marker> marcadoresAntigos = new ArrayList<>(marcadoresLocais.values());
+            for (int i = 0; i < marcadoresAntigos.size(); i++) {
+                marcadoresAntigos.get(i).remove();
+            }
+            marcadoresLocais.clear();
 
         if (proxima == null || locaisCampus.isEmpty()) {
             return;

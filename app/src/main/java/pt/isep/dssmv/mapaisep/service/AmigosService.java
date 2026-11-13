@@ -117,6 +117,8 @@ public class AmigosService {
     public void adicionarAmigo(Context context, String numero, OperacaoCallback callback) {
         if (!numero.matches("[0-9]{7}")) {
             mainHandler.post(() -> callback.onResult("INVALID_STUDENT_NUMBER"));
+            // Ainda na main thread: o post não é obrigatório aqui. Usa-se para o callback
+            // correr sempre depois de o método acabar, como nas respostas da thread.
             return;
         }
         // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
@@ -128,10 +130,25 @@ public class AmigosService {
 
         // 1. Pedir o token.
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
-            // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
+            //idToken: é a prova de que o aluno fez login. Vai em cada pedido à Firebase
+            //é a prova de que o aluno fez login. Vai em cada pedido à Firebase
+            //se ainda tivermos o idToken, ele devolve logo
+            //senao tivermos usamos o refresh token para ir buscar outro
+            //senao tivermos refreshToken, acabou a sessao e devolve SessaoExpirada
+            //o refresh so serve para pedir idToken
+            //o refresh pode "acabar", por exemplo saimos da app um tempo suficiente que o android limpa da memoria
+            //temos de fazer login novamente
             @Override
             public void onSuccess(String idToken) {
                 new Thread(() -> {
+                    //() -> { ... }
+                    //criamos o objeto runnable
+                    //e preenchemos o metodo run
+
+                    //A Thread chama o run() do objeto runnable criado
+                    //mas só quando se faz .start()
+
+                    //mainHandler.post Põe o Runnable na fila da main thread
                     try {
                         // 2. Dados do aluno com sessão iniciada.
                         Amigo eu = obterAluno(uidAtual, idToken);
@@ -217,13 +234,19 @@ public class AmigosService {
 
     // GET ao aluno com este uid.
     private Amigo obterAluno(String uid, String idToken) throws IOException, JSONException {
+        //precisamos do idToken para provar à firebase que temos permissao
+        //e precisamos do uid para identificar o aluno que queremos obter
         HttpResponse resposta = networkHandler.enviarPedido(
+                //criamos um objeto HttpResponse para guardar a respsota produzida
+                //pelo networkHandler.enviarPedido
                 FirebaseConfig.FIRESTORE_URL + "/alunos/" + uid, "GET", idToken, null);
 
         if (!resposta.isSuccessful()) {
             throw new IOException("HTTP_" + resposta.getStatusCode());
         }
         return lerAluno(new JSONObject(resposta.getBody()));
+        //ler aluno transforma o json num dto com o jsonhandler
+        //depois com um mapper transforma de dto para model
     }
 
     // GET a alunos/{uid do aluno}/amigos/{uid do amigo}: 200 = já é amigo, 404 = ainda não é.
@@ -248,10 +271,37 @@ public class AmigosService {
                 .put("op", "EQUAL")
                 .put("value", new JSONObject().put("stringValue", numero));
 
+        // Filtro: o campo "numero" é igual ao número escrito. Depois do toString() fica:
+        // {
+        //   "field": { "fieldPath": "numero" },
+        //   "op": "EQUAL",
+        //   "value": { "stringValue": "1251212" }
+        //
+
+
         JSONObject query = new JSONObject()
+                //O query junta o filtro numa pesquisa completa:
                 .put("from", new JSONArray().put(new JSONObject().put("collectionId", "alunos")))
+                //from: em que coleção procurar, que é a alunos.
+                //É um JSONArray porque a API aceita uma lista de coleções.s
                 .put("where", new JSONObject().put("fieldFilter", filtro))
+                //where: a condição.
                 .put("limit", 1);
+                //limit 1: só queremos um resultado, porque cada número pertence a um só aluno.
+        // {
+        //   "structuredQuery": {
+        //     "from": [ { "collectionId": "alunos" } ],
+        //     "where": {
+        //       "fieldFilter": {
+        //         "field": { "fieldPath": "numero" },
+        //         "op": "EQUAL",
+        //         "value": { "stringValue": "1251212" }
+        //       }
+        //     },
+        //     "limit": 1
+        //   }
+        // }
+
 
         HttpResponse resposta = networkHandler.enviarPedido(
                 FirebaseConfig.FIRESTORE_URL + ":runQuery", "POST", idToken,
@@ -264,7 +314,13 @@ public class AmigosService {
         JSONArray resultados = new JSONArray(resposta.getBody());
         for (int i = 0; i < resultados.length(); i++) {
             if (resultados.getJSONObject(i).has("document")) {
+                //[ { "document": { "name": "...", "fields": { ... } }, "readTime": "..." } ]
+                //se encontrou
+                //[ { "readTime": "..." } ]
+                //se nao encontrou;
                 return lerAluno(resultados.getJSONObject(i).getJSONObject("document"));
+                //getJSONObject("document")
+                //{ "name": "...", "fields": { ... } }
             }
         }
         return null;

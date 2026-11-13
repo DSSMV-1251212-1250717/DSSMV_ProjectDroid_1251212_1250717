@@ -32,6 +32,8 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true">
+            <!-- true o sistema pode abrir-->
+            <!-- false o sistema nao pode abrir, apenas a app-->
 
             <intent-filter>
                 <!-- MAIN: este ecrã é a porta de entrada da app (o primeiro a abrir). -->

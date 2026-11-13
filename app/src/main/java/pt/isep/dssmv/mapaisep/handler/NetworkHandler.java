@@ -29,6 +29,11 @@ public class NetworkHandler {
                 idToken,
                 corpo,
                 "application/json; charset=UTF-8"
+                //este enviarpedido chama o enviarPedido de baixo
+                //o de 4(este) chama o de 5
+                //o pedido corre sempre no de 5
+                //enviarPedido(url, "GET", idToken, null, "application/json; charset=UTF-8"); para nao escrevermos sempre isto
+                //enviarPedido(url, "POST", null, corpo, "application/x-www-form-urlencoded"); so o do pedido ao formulario
         );
     }
 

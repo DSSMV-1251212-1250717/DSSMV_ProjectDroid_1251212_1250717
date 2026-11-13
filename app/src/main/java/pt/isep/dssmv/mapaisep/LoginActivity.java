@@ -40,6 +40,11 @@ public class LoginActivity extends AppCompatActivity {
         // restaurarSessao: volta a pôr o uid e os tokens guardados na memória do AuthService.
         // Com &&, o restaurarSessao só corre se o sessaoValida der true.
         if (SessaoHelper.sessaoValida(this) && AuthService.restaurarSessao(this)) {
+            //o authservice restaurarSessao pede ao SessaoHelper os dados
+            //idToken etc....
+            //o SessaoHelper guarda os dados no telemovel para eles nao se perderem
+            //o AuthService é que entrega os dados ao Firebase
+            //ter os dados em memoria é mais rapido
             SessaoHelper.registarAtividade(this);
             startActivity(new Intent(this, MenuPrincipalActivity.class));
             finish();
@@ -181,6 +186,7 @@ public class LoginActivity extends AppCompatActivity {
                                     refreshToken,
                                     idTokenExpiresAt
                             );
+                            //preencher o ficheiro com estes dados
 
                             // Mensagem de sucesso.
                             Toast.makeText(

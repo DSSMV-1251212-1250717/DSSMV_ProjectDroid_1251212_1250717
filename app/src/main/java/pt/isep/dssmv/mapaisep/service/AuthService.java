@@ -98,6 +98,7 @@ public class AuthService {
         if (currentIdToken != null
                 && System.currentTimeMillis() < currentIdTokenExpiresAt - TOKEN_EXPIRY_MARGIN_MS) {
             mainHandler.post(() -> callback.onSuccess(currentIdToken));
+            //callback.onSucess(currentIdToken)
             return;
         }
 

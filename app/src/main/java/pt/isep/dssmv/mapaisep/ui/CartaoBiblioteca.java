@@ -31,9 +31,11 @@ public class CartaoBiblioteca {
 
         // Botão do cartão: pede a localização precisa.
         btnPermissao.setOnClickListener(v -> pedirPermissao.run());
+        // o menu diz oque fazer quando o botao de permissao é carregado;
 
         // No fim de cada ciclo do detetor, volta a pedir a lotação (o número no ecrã acompanha quem entra e sai).
         DetetorPresenca.obter(activity).definirAoTerminarCiclo(new Runnable() {
+            //detetorPresenca.obter --> vai buscar o detetopresenca partilhado pela a app
             @Override
             public void run() {
                 carregarLotacao();

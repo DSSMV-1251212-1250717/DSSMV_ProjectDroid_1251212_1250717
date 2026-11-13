@@ -39,7 +39,10 @@ public class PresencaService {
             return;
         }
 
-        // Token válido (renovado se estiver quase a expirar) e só depois o pedido.
+        // O AuthService vê se o idToken ainda é válido; se expirou, obtém um novo (com o refreshToken).
+        // Quando tiver o idToken, chama o que está implementado aqui no TokenCallback (na main thread):
+        // onSuccess -> faz o pedido; onError -> devolve o erro.
+        //mas ja tinhamos de mandar o marcarpresenca
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
             // idToken: a prova de que o aluno fez login (vai no cabeçalho Authorization de cada pedido).
             @Override

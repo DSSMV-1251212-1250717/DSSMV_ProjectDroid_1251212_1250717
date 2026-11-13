@@ -59,8 +59,12 @@ public class AmigosNoMapa {
         @Override
         public void run() {
             consultarLocalizacoesAmigos();
+            //Vai buscar as posições dos amigos
+            //atualiza os pinos
+            // e volta a agendar-se para daqui a 5 s
             if (ativo) {
                 handler.postDelayed(this, INTERVALO_MS);
+                //agenda-se a si proprio
             }
         }
     };
@@ -78,6 +82,8 @@ public class AmigosNoMapa {
     public void iniciar() {
         ativo = true;
         handler.removeCallbacks(ciclo);
+        //apaga um ciclo antigo para nao ficar a meio e para nao ficarem dois
+        //poe o ciclo a correr já
         handler.post(ciclo);
     }
 
@@ -94,11 +100,13 @@ public class AmigosNoMapa {
         }
 
         amigosService.listarAmigos(context, (amigos, erro) -> {
+            //1.º pede a lista de amigos
             if (erro != null || amigos == null || !ativo) {
                 return;
             }
 
             localizacaoService.obterLocalizacoesAmigos(context, amigos, (amigosComPosicao, erroLocalizacao) -> {
+                //2.º para cada amigo, GET em localizacoes/{uid}; chega a lista com a posição e a hora
                 if (erroLocalizacao != null || amigosComPosicao == null || !ativo || mapa == null) {
                     return;
                 }
@@ -114,6 +122,7 @@ public class AmigosNoMapa {
                     String legenda = legendaPosicao(amigo);
 
                     if (marcador == null) {
+                        //1.ª vez que aparece este amigo: cria o pin e pede a foto
                         marcador = mapa.addMarker(new MarkerOptions()
                                 .position(posicao)
                                 .title(amigo.getNome()));
@@ -127,6 +136,7 @@ public class AmigosNoMapa {
                             pedirFoto(amigo.getUid(), marcador);
                         }
                     } else {
+                        //o pin já existe: só o move para a posição nova
                         marcador.setPosition(posicao);
 
                         // Só troca o ícone quando a legenda muda (no máximo uma vez por minuto).
@@ -158,6 +168,7 @@ public class AmigosNoMapa {
     // Pede a foto do amigo e, quando chega, guarda-a e põe-na no marcador.
     private void pedirFoto(String uid, Marker marcador) {
         new PerfilService().obterFoto(context, uid, fotoBase64 -> {
+            //pede a foto do amigo uma só vez; fica guardada no Map fotos
             if (!ativo || marcador != marcadores.get(uid)) {
                 return;
             }
@@ -177,7 +188,9 @@ public class AmigosNoMapa {
         String foto = fotos.get(uid);
         String legenda = legendas.get(uid);
         boolean antiga = legenda != null;
+        //tem legenda ("visto há X min") = posição com mais de 5 minutos
 
+        //PASSO B: escolhe a cor do contorno: cinzento se a posição é antiga, vermelho se é recente
         int corContorno;
         if (antiga) {
             corContorno = Color.GRAY;
@@ -185,12 +198,16 @@ public class AmigosNoMapa {
             corContorno = Color.RED;
         }
         marcador.setIcon(IconeFotoHelper.criar(foto, corContorno, antiga, legenda));
+        //é aqui que a foto do amigo entra no mapa: o setIcon troca o pin normal pelo ícone com a foto
+        //recente: foto a cores com contorno vermelho; antiga: foto cinzenta, contorno cinzento e legenda
     }
 
     // Texto por cima de um amigo com posição antiga: "visto há 7 min", "visto há 1h 32 min",
     // "visto há 2 dias". Devolve null se a posição tem menos de 5 minutos (não leva texto).
     private String legendaPosicao(Amigo amigo) {
         Instant agora = Instant.now();
+        //PASSO A: decide se a posição é antiga. Compara a hora da última posição do amigo com agora:
+        //menos de 5 minutos -> null (sem legenda, foto a cores); mais -> texto "visto há..." (foto cinzenta)
         if (amigo.temPosicaoRecente(agora, VALIDADE_POSICAO_MS)) {
             return null;
         }

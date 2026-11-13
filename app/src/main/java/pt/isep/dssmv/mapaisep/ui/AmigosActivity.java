@@ -59,12 +59,19 @@ public class AmigosActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_amigos);
+        //carregar o layout do xml
+
 
         amigosService = new AmigosService();
         inputNumero = findViewById(R.id.inputNumeroAmigo);
+        //depois de estar carregado o layout do xml, usamos o findViewbyId para obter as referencias aos componentes da interface
+        //pelo seu ids
         botaoAdicionar = findViewById(R.id.btnAdicionarAmigo);
         textoEstado = findViewById(R.id.textoEstadoAmigos);
         ListView listaAmigos = findViewById(R.id.listaAmigos);
+        //ListView, uma lista vazia no XML.
+        //o adapter diz-lhe quantas linhas deve ter cada elemento(amigo)
+        //como se desenha cada linha
 
         // O adapter repete o item_amigo.xml por cada amigo. Os botões do cartão
         // chamam estes dois métodos da Activity.
@@ -78,12 +85,23 @@ public class AmigosActivity extends AppCompatActivity {
             public void verHorario(Amigo amigo) {
                 abrirHorarioAmigo(amigo);
             }
+
+            //remover e verHorario sao ListViewAdapterAmigos.AcoesAmigo()
+            //tamos a preencher oque fazer quando se carrega em remover ou verhorario
         });
         listaAmigos.setAdapter(adapter);
         ImageButton botaoMenu = findViewById(R.id.btnMenuAmigos);
 
         botaoMenu.setOnClickListener(ancora -> MenuConta.abrir(this, ancora));
+        //o setonClickListener precisa de um objeto que diga oque fazer quando há um clique
         botaoAdicionar.setOnClickListener(v -> adicionarAmigo());
+        //( ): dentro dos parênteses vai aquilo que o botão deve fazer.
+        //v: o nome de uma variável. Quando clicas no botao adicionar, o Android põe lá o botão clicado.
+        //mete o nome do botao no v
+        //É igual a escrever View v = botaoAdicionar;.
+        //adicionarAmigo(): o método que é chamado.
+        //O v é a View que foi clicada. O Android passa-a sempre ao onClick, mas aqui não a usamos.
+        //Como só há um método possível, o Java sabe que a lambda que lhe dás é esse onClick.
 
         carregarAmigos();
     }
@@ -154,7 +172,9 @@ public class AmigosActivity extends AppCompatActivity {
                 if (fotoBase64 == null || isFinishing() || isDestroyed()) {
                     return;
                 }
-                // Texto Base64 -> bytes -> imagem.
+                // A foto está guardada no Firestore como texto Base64 (o Firestore guarda texto, não ficheiros).
+                // Base64.decode: texto -> bytes do JPEG.
+                // BitmapFactory.decodeByteArray: bytes -> imagem (Bitmap); 0 e bytes.length = ler os bytes todos.
                 byte[] bytes = Base64.decode(fotoBase64, Base64.DEFAULT);
                 Bitmap imagem = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 if (imagem != null) {
@@ -167,19 +187,41 @@ public class AmigosActivity extends AppCompatActivity {
 
     private void adicionarAmigo() {
         String numero = inputNumero.getText().toString().trim();
+        //o get text devolve um editable
+        //o tipo de texto do android para caixas editaveis
         botaoAdicionar.setEnabled(false);
+        //quando formos fazer pedidos à firebase, nao queremos que a pessoa
+        //clique outra vez no botao fazendo novamente outro pedido
+        //esta linha desativa o botao
 
         amigosService.adicionarAmigo(this, numero, erro -> {
+            //O adicionarAmigo do service pede um OperacaoCallback
+            //erro é o parâmetro que o service nos passa quando acaba.
+            //null = correu bem; senão traz o código do erro (ex.: "STUDENT_NOT_FOUND").
+            //temos de escolher oque fazer com ele
             botaoAdicionar.setEnabled(true);
 
             if (erro != null) {
                 mostrarErroAdicionar(erro);
+                //se houver erro mostramos o erro
+                // a caixa nao é limpa
                 return;
             }
 
             inputNumero.setText("");
             Toast.makeText(this, R.string.friends_added, Toast.LENGTH_SHORT).show();
+            //sao aquelas mensagens que aparecem e depois desaparecem sozinha
+            //lenght short é pouco tempo
+
+            //R.string.friends_added
+            //os textos da app ficam num ficheiro xml
+            //O R é uma classe que o Android gera sozinho a partir da pasta res.
+            //R.string são os ids de todos os textos do strings.xml.
+            //R.string.friends_added é o id do texto com o nome friends_added.
+            //para ele saber onde ir ver
             carregarAmigos();
+            // como conseguimos adicionar o amigo
+            //queremos atualizar a lista
         });
     }
 

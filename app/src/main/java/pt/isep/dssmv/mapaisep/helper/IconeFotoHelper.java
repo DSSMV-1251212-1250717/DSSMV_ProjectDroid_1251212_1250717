@@ -50,6 +50,7 @@ public final class IconeFotoHelper {
         if (legenda == null) {
             return BitmapDescriptorFactory.fromBitmap(circulo);
         }
+        //PASSO D: com legenda, põe a caixa branca "visto há X min" por cima da foto e devolve tudo como ícone
         return BitmapDescriptorFactory.fromBitmap(juntarLegenda(circulo, legenda));
     }
 
@@ -73,6 +74,7 @@ public final class IconeFotoHelper {
             Paint pintura = new Paint(Paint.ANTI_ALIAS_FLAG);
             pintura.setColor(corContorno);
             canvas.drawCircle(52, 52, 52, pintura);
+            //PASSO C: se a posição do amigo é antiga, a foto é pintada de cinzento
             if (cinzento) {
                 // Saturação 0 = sem cor: cada píxel fica só com o seu tom de cinzento.
                 ColorMatrix matriz = new ColorMatrix();

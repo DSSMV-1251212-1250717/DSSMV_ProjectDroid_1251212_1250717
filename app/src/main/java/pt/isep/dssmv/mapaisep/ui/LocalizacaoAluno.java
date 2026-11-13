@@ -32,7 +32,11 @@ public class LocalizacaoAluno {
     private final Context context;
     private final LocalizacaoService localizacaoService = new LocalizacaoService();
     private final LocationManager gestorLocalizacao;
+    //LocationManager: é o serviço de localização do Android
+    //que fala com o GPS.
     private final LocationListener ouvinteLocalizacao;
+    //LocationListener: é uma interface do Android.
+    // Somos nós que a implementamos (linha 54), a dizer o que fazer quando chega uma posição nova:
 
     private GoogleMap mapa;
     // A posição do aluno é desenhada com a foto de perfil (num círculo azul), e não com o ponto azul.
@@ -55,7 +59,10 @@ public class LocalizacaoAluno {
             // Posição nova: move a foto do aluno no mapa e partilha a posição.
             @Override
             public void onLocationChanged(Location localizacao) {
+                //Sempre que o GPS tem uma posição nova,
+                // o Android chama este método e passa-nos a posição no parâmetro localizacao
                 atualizarPontoLocalizacao(localizacao);
+                //Quando o LocalizacaoAluno é criado, preparamos um LocationListener
             }
 
             // O Android 8 a 10 chama estas três funções; sem elas, a app vai abaixo.
@@ -71,6 +78,9 @@ public class LocalizacaoAluno {
             @Override
             public void onStatusChanged(String fornecedor, int estado, Bundle extras) {
             }
+            //estes tres metodos sao obrigatorios
+            //quando o gps é ligado por exemplo
+            //nao precisamos deles;
         };
     }
 
@@ -78,6 +88,7 @@ public class LocalizacaoAluno {
     public void definirMapa(GoogleMap mapa) {
         this.mapa = mapa;
         carregarIconeMinhaFoto();
+        //CARREGA A NOSSA FOTO
     }
 
     // O MenuPrincipalActivity avisa quando troca entre Início e Mapa.
@@ -101,11 +112,15 @@ public class LocalizacaoAluno {
     @SuppressWarnings("MissingPermission")
     public void ativar() {
         if (mapa != null && temPermissaoLocalizacao(context)) {
-            // A posição é desenhada com a foto do perfil, não com o ponto azul nativo.
+            // Desliga o ponto azul que o Google Maps desenha sozinho para mostrar a posição:
+            // a posição é desenhada com a foto do perfil.
             mapa.setMyLocationEnabled(false);
+            // Esconde o botão "centrar em mim", que só existe junto com esse ponto azul.
             mapa.getUiSettings().setMyLocationButtonEnabled(false);
 
             iniciarAtualizacoesLocalizacao();
+            //Desliga o ponto azul da Google, porque usamos a nossa foto, e pede posições ao GPS.
+            //pede a loc
         }
     }
 
@@ -130,11 +145,17 @@ public class LocalizacaoAluno {
 
         if (gestorLocalizacao.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             gestorLocalizacao.requestLocationUpdates(
+                    //O gestorLocalizacao é o LocationManager, o serviço de
+                    // localização do Android. Dizemos-lhe: “dá-me posições do GPS e entrega-as ao ouvinteLocalizacao”.
                     LocationManager.GPS_PROVIDER,
                     1000,
                     1f,
                     ouvinteLocalizacao,
+                    //ENTREGA A LOCALIZACAO AO OUVINTE
                     Looper.getMainLooper()
+                    //Dá-me uma posição no máximo a cada 1 s, se me mexi pelo menos 1 m,
+                    // e entrega-a ao ouvinteLocalizacao na main thread.”
+                    //para isso preciso do looper
             );
             fornecedorAtivo = true;
         }
@@ -173,43 +194,66 @@ public class LocalizacaoAluno {
 
     // Move a foto do aluno e, se o mapa estiver aberto, envia a posição para o Firestore.
     private void atualizarPontoLocalizacao(Location localizacao) {
+        //recebemos a localizacao do gps do android
+        //onLocationChanged
+        //temos de atualizar no mapa para a nossa visualizacao e temos
+        //de meter na firebase para os outros;
 
         if (mapa == null) {
             return;
         }
 
         ultimaPosicaoMinha = new Location(localizacao);
+        //ultima posicao do gps serve para desenhar o pin
+        //guarda uma cópia da posição nova (é usada também quando a foto chegar)
         desenharMinhaLocalizacao();
+        //porque ja temos a loc que veio do gps;
+        //põe o pin com a nossa foto nesta posição, ou move-o se já existir
 
         // A mesma posição que move a foto é partilhada com os amigos.
         if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
             localizacaoService.atualizarMinhaLocalizacao(
+                    //temos de mandar para a firebase
+                    //Isto chama o LocalizacaoService.java, linha 38,
+                    // que faz o PATCH em localizacoes/{uid} (o passo 8 que vimos).
                     context, localizacao.getLatitude(), localizacao.getLongitude()
             );
             ultimaLocalizacaoPartilhada = new Location(localizacao);
+            //ultima loc partilha, serve para vermos se vale a pena enviar outra
+            //deveEnviarLoc trata disso
             ultimoEnvioLocalizacao = System.currentTimeMillis();
         }
     }
 
     // Pede a foto do aluno ao Firestore e transforma-a no ícone do marcador (contorno azul).
     private void carregarIconeMinhaFoto() {
+        //Pede a nossa foto (Base64) à Firebase
         // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
         new PerfilService().obterFoto(context, AuthService.getCurrentUid(), fotoBase64 -> {
             iconeMinhaFoto = IconeFotoHelper.criar(fotoBase64, Color.rgb(25, 118, 210));
+            //transforma a foto num ícone redondo com contorno azul
             desenharMinhaLocalizacao();
+            //se a posição já chegou, desenha o pin agora
         });
     }
 
     // Cria o marcador com a foto do aluno ou move-o para a última posição conhecida.
     private void desenharMinhaLocalizacao() {
         if (mapa == null || ultimaPosicaoMinha == null || iconeMinhaFoto == null) {
+            //só desenha quando já há mapa, posição e foto
+            //se faltar um nao desenhamos
             return;
         }
         LatLng posicao = new LatLng(ultimaPosicaoMinha.getLatitude(), ultimaPosicaoMinha.getLongitude());
+        //vem do atualizarPontoLoc
         if (marcadorMinhaLocalizacao == null) {
+            //1.ª vez: cria o pin com a foto
             marcadorMinhaLocalizacao = mapa.addMarker(new MarkerOptions()
+                    //chamamos o mapa porque foi entrege aqui pelo mapaOnReady
                     .position(posicao).title("A tua localização").icon(iconeMinhaFoto));
+            //position: onde fica o pin; title: texto ao tocar; icon: troca o pin normal pela nossa foto (contorno azul)
         } else {
+            //das outras vezes: só move o pin que já existe
             marcadorMinhaLocalizacao.setPosition(posicao);
             marcadorMinhaLocalizacao.setIcon(iconeMinhaFoto);
         }
@@ -219,6 +263,8 @@ public class LocalizacaoAluno {
     private boolean deveEnviarLocalizacao(Location localizacao) {
         return ultimaLocalizacaoPartilhada == null
                 || ultimaLocalizacaoPartilhada.distanceTo(localizacao) >= 3f
+                //mexemo-nos 3 metros ou mais desde a ultima loc
                 || System.currentTimeMillis() - ultimoEnvioLocalizacao >= 5000;
+                //se passaram 5 segundos
     }
 }

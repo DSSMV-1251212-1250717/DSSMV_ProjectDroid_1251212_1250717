@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 /** Guarda no dispositivo apenas o estado e o tempo da sessão atual. */
 public final class SessaoHelper {
+    //Sem ele, ou fazias login de cada vez que abrisses a app, ou nunca mais tinhas de o fazer.
 
     // Nome do ficheiro de preferências onde a sessão fica guardada no dispositivo.
 // Ainda não abre nada: o ficheiro só é aberto em preferencias(), ao passar este nome ao Android.
@@ -13,7 +14,15 @@ public final class SessaoHelper {
     // Cada constante é o nome de um valor guardado nesse ficheiro.
 // O mesmo nome é usado para gravar (put) e para ler (get) o valor.
     private static final String KEY_SESSION_ACTIVE = "session_active";
+    //se o aluno fez login
     private static final String KEY_LAST_ACTIVE_AT = "last_active_at";
+    //é a hora da última utilização.
+    //corre no onPause de cada ecra --> quando o ecra deixa de estar à vista
+    //ou seja trocou de ecra ou saiu da app
+    //ele só comeca realmente a conta os dois minutos quando saimos da app
+    //porque para sair da app, o onPause vai sempre correr
+    //podemos tar a usar a app e ter a ultima atualizacao há 7 minutos, nao interesa, quando sairmos da app
+    //ele comeca a conta denovo e nao precisamos de voltar a fazer login durante 2 minutos
     private static final String KEY_LAST_PAGE_IS_MAP = "last_page_is_map";
     // uid: quem é o aluno (o identificador dele no Firebase, usado nos endereços dos documentos).
     private static final String KEY_UID = "uid";
@@ -55,6 +64,7 @@ public final class SessaoHelper {
 
     /** Atualiza a hora da última utilização da app. */
     public static void registarAtividade(Context context) {
+        //corre em cada onPause
         preferencias(context).edit()
                 .putLong(KEY_LAST_ACTIVE_AT, System.currentTimeMillis())
                 .apply();
@@ -62,6 +72,9 @@ public final class SessaoHelper {
 
     /** Devolve true apenas enquanto os dois minutos ainda não terminaram. */
     public static boolean sessaoValida(Context context) {
+        //se o aluno pode entrar sem fazer login outra vez
+        //abre um ficheiro onde guardamos os dados da nossa app que sorbevivem
+        //quando a fechamos
         SharedPreferences prefs = preferencias(context);
 
         if (!prefs.getBoolean(KEY_SESSION_ACTIVE, false)) {
@@ -70,10 +83,14 @@ public final class SessaoHelper {
 
         long ultimaAtividade = prefs.getLong(KEY_LAST_ACTIVE_AT, 0L);
         long tempoPassado = System.currentTimeMillis() - ultimaAtividade;
+        //tem de ser positivo ou zero
+        //ou seja, o tempo passado ou comecou agora e tá a zero
+        //ou ja passou algum tempo, nao pode ser negativo
 
         // Devolve true se a hora existe (> 0) E não está no futuro (>= 0)
         // E passaram menos de 2 minutos (< SESSION_TIMEOUT_MS). Basta uma falhar para dar false.
         return ultimaAtividade > 0L && tempoPassado >= 0L
+                //ultimaAtividade Se vier 0, que é o valor por defeito, nunca foi gravada.
                 && tempoPassado < SESSION_TIMEOUT_MS;
     }
 

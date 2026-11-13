@@ -20,3 +20,4 @@ Thumbs.db
 
 # Chave do Google Maps (local, não vai para o GitHub)
 secrets.properties
+gradle/gradle-daemon-jvm.properties

@@ -36,6 +36,7 @@ public class DetetorPresenca {
     private boolean presente;         // o aluno conta como presente neste momento?
     private long ultimaRenovacao;     // quando foi o último PATCH que correu bem
     private int ecrasVisiveis;        // quantos ecrãs da app estão visíveis neste momento
+    //a contagem
 
     // Tarefa dada pelo cartão da biblioteca, executada no fim de cada ciclo
     // (volta a pedir a lotação). Pode ser null.
@@ -43,6 +44,8 @@ public class DetetorPresenca {
 
     // A tarefa "fazer um ciclo", que o Handler executa agora ou daqui a 30 segundos.
     private final Runnable ciclo = new Runnable() {
+        //tem de estar dentro de um runnable para tar no mainpost
+        //ciclo corre e chama o executarCiclo
         @Override
         public void run() {
             executarCiclo();
@@ -51,6 +54,7 @@ public class DetetorPresenca {
 
     // A tarefa "desligar se a app foi para fundo", agendada pelo ecraEscondido.
     private final Runnable pararSeEmFundo = new Runnable() {
+        //porque para metermos no mainHanler tem de ser um runnable
         @Override
         public void run() {
             if (ecrasVisiveis == 0) {
@@ -81,17 +85,24 @@ public class DetetorPresenca {
     // Chamado no onResume de cada ecrã: um ecrã da app ficou visível.
     public void ecraVisivel() {
         ecrasVisiveis++;
+        //adicionamos à contagem, chamado pelas activities
         mainHandler.removeCallbacks(pararSeEmFundo);   // cancela um "desligar" que estava à espera
         iniciar();
     }
 
     // Chamado no onPause de cada ecrã: se mais nenhum ficar visível, desliga daqui a 2 segundos.
     public void ecraEscondido() {
+        //tira da contagem dos ecras
         if (ecrasVisiveis > 0) {
             ecrasVisiveis--;
         }
         if (ecrasVisiveis == 0) {
             mainHandler.postDelayed(pararSeEmFundo, ESPERA_ANTES_DE_PARAR_MS);
+            //dizemos nao temos ecras à vista, mainHandler.postDelayed(pararSeEmFundo, ESPERA_ANTES_DE_PARAR_MS)
+            //espera 2 segnundos depoiis para
+            //pararseemfundo tem funcao parar
+            //ou seja nao queremos contribuir para a lotacao da biblioteca senao tivermos nenhuma tela há mais de 2 segundos
+            //Desliga o scan do Wi-Fi a cada 30 segundos
         }
     }
 
@@ -107,7 +118,10 @@ public class DetetorPresenca {
         }
         ativo = true;
         mainHandler.removeCallbacks(ciclo);
+        //Apaga da fila qualquer ciclo que lá esteja à espera
+        //garantimos que so existe um ciclo
         mainHandler.post(ciclo);
+        //iniciar põe o ciclo a correr:
     }
 
     // Desliga o detetor: cancela o próximo ciclo que estava agendado.
@@ -116,10 +130,12 @@ public class DetetorPresenca {
         ativo = false;
         presente = false;
         mainHandler.removeCallbacks(ciclo);
+        //tira o ciclo que faz o scan dos wifis, o executarCiclo nao correr , logo o decidir tambem, logo o envio à firebase tambme nao
     }
 
     // 1. Pede o sinal do router ao WifiHelper.
     private void executarCiclo() {
+        //o executarCiclo pede o scan ao WifiHelper
         if (!ativo) {
             return;
         }
@@ -129,8 +145,10 @@ public class DetetorPresenca {
             public void onResult(Integer rssi, String erro) {
                 decidir(rssi);
             }
+
         };
         wifiScanner.procurarRouterBiblioteca(callbackWifi);
+        //O WifiHelper faz o scan e, quando acaba, chama o onResult(porque metemos isso no callback). O onResult chama o decidir.
     }
 
     // 2. Com o sinal e os limiares, decide o que fazer.
@@ -145,12 +163,18 @@ public class DetetorPresenca {
 
         if (!presente && sinalForte) {
             marcar(agora);                                   // entrou
+            //o marcar envia a decisão
         } else if (presente && sinalFraco) {
             remover();                                       // saiu
+            //o remover envia a decisão (DELETE)
         } else if (presente && agora - ultimaRenovacao >= BibliotecaConfig.RENOVAR_PRESENCA_MS) {
+            //renovar a presença de 2 em 2 minutos enquanto continuas na biblioteca.
+            //a contagem só conta presenças dos últimos 5 minutos
+            //decidimos 2 minutos
             marcar(agora);                                   // continua lá: renova a hora
         } else {
             agendarProximo();                                // nada mudou
+            //o agendarProximo agenda o próximo scan
         }
     }
 
@@ -167,6 +191,7 @@ public class DetetorPresenca {
             }
         };
         presencaService.marcarPresenca(context, callbackPresenca);
+        //marca a presenca com patch
     }
 
     // 3b. DELETE: remove a presença.
