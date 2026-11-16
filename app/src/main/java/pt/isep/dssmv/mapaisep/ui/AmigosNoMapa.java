@@ -100,7 +100,10 @@ public class AmigosNoMapa {
         }
 
         amigosService.listarAmigos(context, (amigos, erro) -> {
+            //amigos, erro: só damos nomes aos dois valores que vão chegar; do service
+            //agora implementamos o callback para dizer oque queremos fazer com os dados
             //1.º pede a lista de amigos
+            //para sabermos a loc dos nossos amigos
             if (erro != null || amigos == null || !ativo) {
                 return;
             }
@@ -112,6 +115,8 @@ public class AmigosNoMapa {
                 }
 
                 Set<String> uidsComPosicao = new HashSet<>();
+                //HashSet: uma lista sem repetidos, onde o contains(uid) é instantâneo.
+                //Usa-se no fim para perguntar "este amigo ainda tem posição?".
                 for (int i = 0; i < amigosComPosicao.size(); i++) {
                     Amigo amigo = amigosComPosicao.get(i);
                     uidsComPosicao.add(amigo.getUid());
@@ -141,7 +146,11 @@ public class AmigosNoMapa {
 
                         // Só troca o ícone quando a legenda muda (no máximo uma vez por minuto).
                         String antes = legendas.get(amigo.getUid());
+                        //vai ao Map legendas buscar a legenda guardada da última vez para este amigo
                         if (!legendas.containsKey(amigo.getUid()) || !Objects.equals(antes, legenda)) {
+                            //!legendas.containsKey(...): não há legenda guardada para este amigo?
+                            //!Objects.equals(antes, legenda): a legenda de agora é diferente da de antes?
+                            //basta uma ser verdadeira (||) para guardar a nova e redesenhar a foto
                             legendas.put(amigo.getUid(), legenda);
                             atualizarIcone(amigo.getUid(), marcador);
                         }
@@ -151,13 +160,22 @@ public class AmigosNoMapa {
                 // Se já não houver localização no Firebase, remove o marcador do mapa.
                 // Copia os uids para uma lista, porque o ciclo remove marcadores do Map.
                 List<String> uids = new ArrayList<>(marcadores.keySet());
+                //marcadores: o Map onde guardamos os pins. Cada entrada é uid → pin.
+                //.keySet(): dá só as chaves desse Map, ou seja, só os uids, sem os pins.
+                //keySet(): todos os uids que têm pin no mapa (copiados para não apagar do Map enquanto se percorre)
                 for (int i = 0; i < uids.size(); i++) {
+                    //uids: os amigos que têm pin no mapa;
                     String uid = uids.get(i);
+                    //uidsComPosicao: os amigos que vieram com posição neste ciclo
                     if (!uidsComPosicao.contains(uid)) {
+                        //este amigo não veio na resposta com posição (ex.: deixou de ser amigo)
                         Marker marcador = marcadores.remove(uid);
+                        //tira o pin do Map (o remove devolve o pin que lá estava)
                         legendas.remove(uid);
+                        //tira a legenda dele
                         if (marcador != null) {
                             marcador.remove();
+                            //tira o pin do mapa: desaparece do ecrã
                         }
                     }
                 }

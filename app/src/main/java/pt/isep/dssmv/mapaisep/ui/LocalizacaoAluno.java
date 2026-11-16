@@ -211,6 +211,7 @@ public class LocalizacaoAluno {
         //põe o pin com a nossa foto nesta posição, ou move-o se já existir
 
         // A mesma posição que move a foto é partilhada com os amigos.
+        //AQUI DECIDIMOS SE MANDAMOS PARA A FIREBASE
         if (mapaAberto && deveEnviarLocalizacao(localizacao)) {
             localizacaoService.atualizarMinhaLocalizacao(
                     //temos de mandar para a firebase

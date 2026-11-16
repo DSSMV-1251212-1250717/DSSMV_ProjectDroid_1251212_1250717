@@ -49,11 +49,7 @@ public class AmigosService {
             return;
         }
 
-        // 1. Pedir o token (a chave que o Firestore exige em cada pedido).
-        // O TokenCallback é uma interface do AuthService com dois métodos vazios:
-        // onSuccess e onError. Aqui preenchemos esses métodos com o que queremos
-        // que aconteça. Criar este objeto não executa nada: o AuthService guarda-o
-        // e chama o onSuccess quando tiver o token, ou o onError se falhar.
+
         new AuthService().obterIdTokenValido(context, new AuthService.TokenCallback() {
 
             // Chamado pelo AuthService, na main thread, com o token pronto a usar.
